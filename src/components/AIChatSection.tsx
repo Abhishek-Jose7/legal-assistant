@@ -190,8 +190,12 @@ export default function AIChatSection() {
       })
 
       const data = await response.json()
-      // Directly use the returned JSON object as the message
-      const aiMessage: Message = { role: "assistant", ...data }
+      // Directly use the returned JSON object as the message, mapping 'message' to 'content' for display
+      const aiMessage: Message = {
+        role: "assistant",
+        content: data.message,
+        ...data
+      }
       setMessages((prev) => [...prev, aiMessage])
 
     } catch (error) {

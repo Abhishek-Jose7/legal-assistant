@@ -139,7 +139,7 @@ export default function KnowYourRights() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl bg-[#F5EEDC] max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 rounded-xl">
+        <DialogContent className="max-w-4xl bg-[#F5EEDC] h-[85vh] flex flex-col overflow-hidden p-0 gap-0 rounded-xl">
           <DialogHeader className="p-6 pb-2 shrink-0 bg-white/50 border-b border-[#C8AD7F]/20">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl ${selectedCategory?.color} flex items-center justify-center shrink-0`}>
@@ -156,7 +156,7 @@ export default function KnowYourRights() {
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 p-6 bg-[#F5EEDC]">
+          <div className="flex-1 overflow-y-auto p-6 bg-[#F5EEDC] overscroll-contain">
             <div className="max-w-3xl mx-auto">
               {filteredRights.length > 0 ? (
                 <Accordion type="single" collapsible className="w-full space-y-4">
@@ -231,7 +231,7 @@ export default function KnowYourRights() {
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </section>

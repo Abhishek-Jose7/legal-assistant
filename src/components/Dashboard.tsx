@@ -210,27 +210,56 @@ export default function Dashboard() {
                 {/* SIGNED OUT DASHBOARD */}
                 {!isSignedIn && (
                     <div className="space-y-12">
-                        {/* Legal News Section */}
-                        <div className="max-w-4xl mx-auto">
-                            <div className="flex items-center justify-between mb-6">
+                        {/* Legal News Section - Full Width Marquee */}
+                        <div className="w-screen relative left-[calc(-50vw+50%)] overflow-hidden py-10 bg-gradient-to-r from-[#F5EEDC] via-white/50 to-[#F5EEDC]">
+                            <div className="container mx-auto px-4 mb-6">
                                 <h3 className="flex items-center gap-2 text-2xl font-bold text-[#0F3D3E]">
                                     <Newspaper className="h-6 w-6" /> Trending Legal News
                                 </h3>
                             </div>
-                            {/* News Carousel Container */}
-                            <div className="flex overflow-x-auto gap-6 min-h-[340px] pb-4 px-2 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                {loadingNews ? (
+
+                            {loadingNews ? (
+                                <div className="container mx-auto px-4">
                                     <div className="w-full h-[300px] flex items-center justify-center text-slate-500 bg-white/50 rounded-xl border border-dashed border-slate-300">
                                         Loading latest legal updates...
                                     </div>
-                                ) : (
-                                    <>
-                                        {newsData.length > 0 ? newsData.slice(0, 10).map((news, idx) => (
-                                            <Card key={idx} className="min-w-[300px] md:min-w-[350px] max-w-[350px] snap-center border-2 border-[#C8AD7F]/30 bg-white/60 hover:shadow-lg transition-all h-full flex flex-col overflow-hidden group">
+                                </div>
+                            ) : newsData.length === 0 ? (
+                                <div className="container mx-auto px-4">
+                                    <div className="w-full h-[300px] flex flex-col items-center justify-center text-center py-12 bg-white/50 rounded-xl border border-dashed border-slate-300">
+                                        <Newspaper className="h-10 w-10 text-slate-300 mb-3" />
+                                        <p className="text-slate-500">No trending legal news available at the moment.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative w-full overflow-hidden">
+                                    {/* Gradients to fade edges */}
+                                    <div className="absolute top-0 left-0 z-10 h-full w-[100px] bg-gradient-to-r from-[#F5EEDC] to-transparent pointer-events-none" />
+                                    <div className="absolute top-0 right-0 z-10 h-full w-[100px] bg-gradient-to-l from-[#F5EEDC] to-transparent pointer-events-none" />
+
+                                    {/* Marquee Track */}
+                                    <motion.div
+                                        className="flex gap-6 pl-4"
+                                        animate={{ x: ["0%", "-50%"] }}
+                                        transition={{
+                                            ease: "linear",
+                                            duration: 80, // Slow animation
+                                            repeat: Infinity,
+                                        }}
+                                        whileHover={{ animationPlayState: "paused" }} // Note: Framer motion pauses differently, but we'll try style injection or use a hover state
+                                        style={{ width: "fit-content" }}
+                                    // Simple hover pause hack via CSS class if needed, or maintain standard motion
+                                    >
+                                        {/* Render items twice for seamless loop */}
+                                        {[...newsData.slice(0, 10), ...newsData.slice(0, 10)].map((news, idx) => (
+                                            <Card
+                                                key={`${idx}-${news.title}`}
+                                                className="min-w-[320px] md:min-w-[380px] max-w-[380px] border-2 border-[#C8AD7F]/30 bg-white/80 hover:bg-white hover:shadow-xl hover:scale-[1.02] transition-all duration-300 h-[380px] flex flex-col overflow-hidden group cursor-pointer"
+                                            >
                                                 {/* Image or Fallback Header */}
                                                 {news.urlToImage ? (
                                                     <div className="h-44 w-full overflow-hidden relative shrink-0">
-                                                        <img src={news.urlToImage} alt="News" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                        <img src={news.urlToImage} alt="News" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                                         <div className="absolute top-2 right-2">
                                                             <span className="text-[10px] font-bold text-[#0F3D3E] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">{formatTime(news.publishedAt)}</span>
                                                         </div>
@@ -239,7 +268,7 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center relative shrink-0">
+                                                    <div className="h-44 w-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center relative shrink-0">
                                                         <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm`}>
                                                             <Newspaper className="h-6 w-6 text-slate-400" />
                                                         </div>
@@ -249,28 +278,26 @@ export default function Dashboard() {
                                                     </div>
                                                 )}
 
-                                                <CardContent className="p-5 flex flex-col flex-1">
-                                                    <Link href={news.url} target="_blank">
-                                                        <h4 className="font-bold text-base text-[#2E2E2E] mb-2 hover:text-[#0F3D3E] line-clamp-2 leading-tight">{news.title}</h4>
-                                                    </Link>
-                                                    <p className="text-slate-600 mb-4 line-clamp-3 text-xs flex-grow">{news.description}</p>
-                                                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                                                <CardContent className="p-5 flex flex-col flex-1 relative">
+                                                    <Link href={news.url} target="_blank" className="absolute inset-0 z-10" />
+                                                    <h4 className="font-bold text-lg text-[#2E2E2E] mb-2 group-hover:text-[#0F3D3E] line-clamp-2 leading-tight transition-colors">
+                                                        {news.title}
+                                                    </h4>
+                                                    <p className="text-slate-600 mb-4 line-clamp-3 text-sm flex-grow leading-relaxed">
+                                                        {news.description}
+                                                    </p>
+                                                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100 bg-transparent z-20">
                                                         <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">{news.source}</span>
-                                                        <Link href={news.url} target="_blank" className="text-xs font-semibold text-[#0F3D3E] hover:underline flex items-center">
-                                                            Read full story <ArrowRight className="h-3 w-3 ml-1" />
-                                                        </Link>
+                                                        <span className="text-xs font-semibold text-[#0F3D3E] group-hover:underline flex items-center">
+                                                            Read full story <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+                                                        </span>
                                                     </div>
                                                 </CardContent>
                                             </Card>
-                                        )) : (
-                                            <div className="w-full h-[300px] flex flex-col items-center justify-center text-center py-12 bg-white/50 rounded-xl border border-dashed border-slate-300">
-                                                <Newspaper className="h-10 w-10 text-slate-300 mb-3" />
-                                                <p className="text-slate-500">No trending legal news available at the moment.</p>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
+                                        ))}
+                                    </motion.div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Main Features */}
