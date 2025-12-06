@@ -85,7 +85,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-[#C8AD7F]/30">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-[#2E2E2E]/70">
-              © 2024 Lexi.AI. All rights reserved.
+              © 2025 Lexi.AI. All rights reserved.
             </p>
             <p className="text-xs text-[#2E2E2E]/60 text-center md:text-right max-w-md">
               Legal information provided is for educational purposes only and should not be considered as professional legal advice. Please consult a qualified lawyer for your specific situation.

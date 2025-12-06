@@ -1,15 +1,13 @@
 import AIChatSection from "@/components/AIChatSection";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 export default function ChatPage() {
     return (
-        <div className="min-h-screen flex flex-col bg-[#F5EEDC]">
+        <div className="h-screen flex flex-col bg-[#F5EEDC] overflow-hidden">
             <Header />
-            <main className="flex-1 pt-16">
+            <main className="flex-1 flex flex-col pt-16 overflow-hidden">
                 <AIChatSection />
             </main>
-            <Footer />
         </div>
     );
 }

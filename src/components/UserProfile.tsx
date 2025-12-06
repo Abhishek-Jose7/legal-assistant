@@ -17,7 +17,9 @@ export default function UserProfile() {
         full_name: "",
         phone: "",
         address: "",
-        user_type: "Individual", // Individual, Lawyer, Student
+        user_type: "Individual",
+        age: "",
+        gender: "",
     })
 
     // Load profile when user is loaded
@@ -41,6 +43,8 @@ export default function UserProfile() {
                 phone: data.phone || "",
                 address: data.address || "",
                 user_type: data.user_type || "Individual",
+                age: data.age || "",
+                gender: data.gender || "",
             })
         }
         setLoading(false)
@@ -57,6 +61,8 @@ export default function UserProfile() {
             phone: profile.phone,
             address: profile.address,
             user_type: profile.user_type,
+            age: profile.age ? parseInt(profile.age) : null,
+            gender: profile.gender,
             updated_at: new Date(),
         }
 
@@ -133,7 +139,7 @@ export default function UserProfile() {
                         <CardHeader>
                             <CardTitle>Legal Persona</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-6">
                             <div className="space-y-2">
                                 <Label>I am primarily a...</Label>
                                 <select
@@ -148,10 +154,37 @@ export default function UserProfile() {
                                     <option value="Tenant">Tenant</option>
                                     <option value="Landlord">Landlord</option>
                                 </select>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    This helps Lexi.AI tailor legal advice and document drafts specifically for your needs.
-                                </p>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Age</Label>
+                                    <Input
+                                        type="number"
+                                        value={profile.age}
+                                        onChange={(e) => setProfile({ ...profile, age: e.target.value })}
+                                        placeholder="Age"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Gender</Label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                        value={profile.gender}
+                                        onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Non-Binary">Non-Binary</option>
+                                        <option value="Prefer not to say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-slate-500">
+                                This helps Lexi.AI tailor legal advice and document drafts specifically for your needs.
+                            </p>
                         </CardContent>
                     </Card>
 
@@ -161,6 +194,6 @@ export default function UserProfile() {
                     </Button>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

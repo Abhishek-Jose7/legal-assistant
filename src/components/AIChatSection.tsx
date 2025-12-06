@@ -183,7 +183,10 @@ export default function AIChatSection() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          userId: user?.id
+        }),
       })
 
       const data = await response.json()
@@ -231,7 +234,9 @@ export default function AIChatSection() {
                   {/* Standard Text Content (if simple or fallback) */}
                   {message.content && (
                     <div className={`rounded-2xl px-5 py-4 shadow-sm ${message.role === "assistant" ? "bg-white border text-slate-800" : "bg-[#1e3a8a] text-white"}`}>
-                      <ReactMarkdown className="prose prose-sm max-w-none">{message.content}</ReactMarkdown>
+                      <div className="prose prose-sm max-w-none">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
                     </div>
                   )}
 

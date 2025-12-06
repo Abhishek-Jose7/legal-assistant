@@ -217,16 +217,19 @@ export default function Dashboard() {
                                     <Newspaper className="h-6 w-6" /> Trending Legal News
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[300px]">
+                            {/* News Carousel Container */}
+                            <div className="flex overflow-x-auto gap-6 min-h-[340px] pb-4 px-2 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {loadingNews ? (
-                                    <div className="col-span-2 text-center py-20 text-slate-500">Loading latest legal updates...</div>
+                                    <div className="w-full h-[300px] flex items-center justify-center text-slate-500 bg-white/50 rounded-xl border border-dashed border-slate-300">
+                                        Loading latest legal updates...
+                                    </div>
                                 ) : (
                                     <>
-                                        {newsData.length > 0 ? newsData.slice(0, 4).map((news, idx) => (
-                                            <Card key={idx} className="border-2 border-[#C8AD7F]/30 bg-white/60 hover:shadow-lg transition-all h-full flex flex-col overflow-hidden group">
+                                        {newsData.length > 0 ? newsData.slice(0, 10).map((news, idx) => (
+                                            <Card key={idx} className="min-w-[300px] md:min-w-[350px] max-w-[350px] snap-center border-2 border-[#C8AD7F]/30 bg-white/60 hover:shadow-lg transition-all h-full flex flex-col overflow-hidden group">
                                                 {/* Image or Fallback Header */}
                                                 {news.urlToImage ? (
-                                                    <div className="h-48 w-full overflow-hidden relative">
+                                                    <div className="h-44 w-full overflow-hidden relative shrink-0">
                                                         <img src={news.urlToImage} alt="News" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                                         <div className="absolute top-2 right-2">
                                                             <span className="text-[10px] font-bold text-[#0F3D3E] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">{formatTime(news.publishedAt)}</span>
@@ -236,7 +239,7 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center relative">
+                                                    <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center relative shrink-0">
                                                         <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm`}>
                                                             <Newspaper className="h-6 w-6 text-slate-400" />
                                                         </div>
@@ -246,21 +249,21 @@ export default function Dashboard() {
                                                     </div>
                                                 )}
 
-                                                <CardContent className="p-6 flex flex-col flex-1">
+                                                <CardContent className="p-5 flex flex-col flex-1">
                                                     <Link href={news.url} target="_blank">
-                                                        <h4 className="font-bold text-lg text-[#2E2E2E] mb-2 hover:text-[#0F3D3E] line-clamp-2 leading-tight">{news.title}</h4>
+                                                        <h4 className="font-bold text-base text-[#2E2E2E] mb-2 hover:text-[#0F3D3E] line-clamp-2 leading-tight">{news.title}</h4>
                                                     </Link>
-                                                    <p className="text-slate-600 mb-4 line-clamp-3 text-sm flex-grow">{news.description}</p>
-                                                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-                                                        <span className="text-xs font-bold text-slate-500 truncate max-w-[150px]">{news.source}</span>
-                                                        <Link href={news.url} target="_blank" className="text-sm font-semibold text-[#0F3D3E] hover:underline flex items-center">
+                                                    <p className="text-slate-600 mb-4 line-clamp-3 text-xs flex-grow">{news.description}</p>
+                                                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                                                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">{news.source}</span>
+                                                        <Link href={news.url} target="_blank" className="text-xs font-semibold text-[#0F3D3E] hover:underline flex items-center">
                                                             Read full story <ArrowRight className="h-3 w-3 ml-1" />
                                                         </Link>
                                                     </div>
                                                 </CardContent>
                                             </Card>
                                         )) : (
-                                            <div className="col-span-2 text-center py-12 bg-white/50 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center">
+                                            <div className="w-full h-[300px] flex flex-col items-center justify-center text-center py-12 bg-white/50 rounded-xl border border-dashed border-slate-300">
                                                 <Newspaper className="h-10 w-10 text-slate-300 mb-3" />
                                                 <p className="text-slate-500">No trending legal news available at the moment.</p>
                                             </div>

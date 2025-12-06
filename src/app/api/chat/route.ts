@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadLegalData } from "@/lib/legalData";
+import { supabase } from "@/lib/supabaseClient";
 import Groq from "groq-sdk";
 
 // Initialize Groq
@@ -33,7 +34,7 @@ const searchLegalRights = (query: string) => {
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { message, userId } = await req.json();
 
     // 1. Simple Guard for Greetings
     const greetings = ["hi", "hello", "hey", "greetings"];
@@ -44,14 +45,35 @@ export async function POST(req: Request) {
       });
     }
 
+    // 1.5 Fetch User Context if logged in
+    let userContext = "User is anonymous.";
+    if (userId) {
+      const { data: profile } = await supabase.from('profiles').select('*').eq('clerk_id', userId).single();
+      if (profile) {
+        userContext = `User Profile:
+            - Type: ${profile.user_type || "General"}
+            - Age: ${profile.age || "Unknown"}
+            - Gender: ${profile.gender || "Unknown"}
+            
+            ADJUST YOUR TONE AND ADVICE ACCORDINGLY. 
+            For students, focus on educational rights and simple language.
+            For tenants/landlords, cite Model Tenancy Act.
+            For women, prioritize safety and specific protective laws.
+            For elderly (Age > 60), use respectful, clear language.`;
+      }
+    }
+
     // 2. Perform Search on Legal DB (RAG Context)
     const relevantRights = searchLegalRights(message);
     const contextStr = relevantRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
 
-    // 3. Construct System Prompt for Structure
+    // 3. Construct System Prompt forStructure
     const systemPrompt = `
     You are Lexi, an advanced expert legal AI assistant.
     The user asked: "${message}"
+
+    CONTEXT ON USER:
+    ${userContext}
 
     Based on the following known legal rights from our database:
     ${contextStr}
