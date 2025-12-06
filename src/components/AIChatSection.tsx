@@ -36,13 +36,14 @@ const RECOMMENDED_LAWYERS = [
 interface Message {
   role: "user" | "assistant"
   content: string
-  action?: "NONE" | "SHOW_LAWYERS" | "SHOW_TEMPLATE" | "DRAFT_DOCUMENT"
+  action?: "NONE" | "SHOW_LAWYERS" | "SHOW_TEMPLATE" | "DRAFT_DOCUMENT" | "SHOW_ANALYSIS"
   actionData?: any
 }
 
 export default function AIChatSection() {
   const { user } = useUser()
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [docContext, setDocContext] = useState<string>("") // Store extracted text
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -97,7 +98,8 @@ export default function AIChatSection() {
         body: JSON.stringify({
           message: text,
           history: conversationHistory,
-          userProfile: userProfile
+          userProfile: userProfile,
+          documentContext: docContext
         }),
       })
 
@@ -145,14 +147,16 @@ export default function AIChatSection() {
       })
       const data = await res.json()
 
-      if (data.error) {
-        throw new Error(data.error)
-      }
+      if (data.error) throw new Error(data.error)
+
+      // Store full text for follow-ups
+      setDocContext(data.extractedText)
 
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: `**Document Analysis for ${file.name}:**\n\n${data.summary}`,
-        action: "NONE"
+        content: `I've analyzed your document (**${file.name}**). Here is the breakdown:`,
+        action: "SHOW_ANALYSIS",
+        actionData: data.analysis
       }])
 
     } catch (error) {
@@ -226,6 +230,51 @@ export default function AIChatSection() {
               Download PDF
             </Button>
           </div>
+        </div>
+      )
+    }
+
+    if (msg.action === "SHOW_ANALYSIS") {
+      const analysis = msg.actionData
+      return (
+        <div className="mt-4 space-y-4 w-full">
+          <Card className="border-l-4 border-l-[#1e3a8a]">
+            <CardContent className="pt-6">
+              <h4 className="font-bold flex items-center gap-2 mb-2 text-[#1e3a8a]">
+                <FileText className="w-5 h-5" /> Document Summary
+              </h4>
+              <p className="text-sm text-slate-700">{analysis.summary}</p>
+              <div className="mt-2 text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-800 rounded inline-block">
+                Category: {analysis.category}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card className="bg-red-50 border-red-100">
+              <CardContent className="pt-4">
+                <h5 className="font-semibold text-red-800 mb-2 flex items-center gap-2">🚨 Risks & Liabilities</h5>
+                <ul className="list-disc pl-4 text-sm text-red-700 space-y-1">
+                  {analysis.risks?.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 border-green-100">
+              <CardContent className="pt-4">
+                <h5 className="font-semibold text-green-800 mb-2 flex items-center gap-2">✅ Recommended Actions</h5>
+                <ul className="list-disc pl-4 text-sm text-green-700 space-y-1">
+                  {analysis.actions?.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {analysis.lawyer_recommended && (
+            <div className="p-3 bg-slate-900 text-white rounded-lg flex items-center justify-between">
+              <span className="text-sm">⚖️ This document suggests complex legal risks.</span>
+              <Button size="sm" variant="secondary" onClick={() => handleSendMessage("Find me a lawyer for this")}>Find Lawyer</Button>
+            </div>
+          )}
         </div>
       )
     }

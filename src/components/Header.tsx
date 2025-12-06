@@ -1,25 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Scale } from "lucide-react"
 import Link from "next/link"
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs"
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const { user } = useUser()
+  const [userType, setUserType] = useState<string | null>(null)
 
-  const navItems = [
+  useEffect(() => {
+    if (user?.id) {
+      const fetchType = async () => {
+        const { data } = await supabase.from('profiles').select('user_type').eq('clerk_id', user.id).single()
+        if (data) setUserType(data.user_type)
+      }
+      fetchType()
+    }
+  }, [user])
+
+  const baseNavItems = [
     { label: "Ask AI Assistant", href: "/" },
     { label: "Know Your Rights", href: "/rights" },
     { label: "Templates", href: "/templates" },
     { label: "Find Lawyer", href: "/lawyers" },
-    { label: "Find Lawyer", href: "/lawyers" },
     { label: "Rights by Category", href: "/personas" },
     { label: "My Profile", href: "/profile" },
-    { label: "For Lawyers", href: "/lawyer/register" },
   ]
+
+  // Filter Logic:
+  // If user is 'Individual' or 'Student', hide 'For Lawyers' (Register).
+  // If user is not logged in, show 'For Lawyers' (to attract them).
+  // 'For Lawyers' link:
+  const forLawyersLink = { label: "For Lawyers", href: "/lawyer/register" }
+
+  const navItems = [...baseNavItems]
+
+  // Logic: Show 'For Lawyers' unless we know for sure they are a normal user (Individual/Student)
+  const isNormalUser = userType === 'Individual' || userType === 'Student' || userType === 'Business Owner'
+  // If user is logged in AND is a normal user, DO NOT show 'For Lawyers'
+  // If user is NOT logged in, SHOW it. 
+  // If user IS a Lawyer, maybe show it (or show Dashboard, but let's keep it simple or hide it if they are already reg).
+
+  if (!isNormalUser) {
+    navItems.push(forLawyersLink)
+  }
+  // Wait, if they are a Lawyer, they might not need "For Lawyers" (Register) either? 
+  // But let's stick to the request: "without the find lawyer button if the user is a normal person"
+  // If I interpret literally: Remove "Find Lawyer" if normal person.
+  // That would be `navItems = navItems.filter(i => i.label !== 'Find Lawyer')` if isNormalUser.
+
+  // I will assume the user meant "For Lawyers" button. 
+  // And I'll remove the Duplicate "Find Lawyer" from base items carefully.
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
