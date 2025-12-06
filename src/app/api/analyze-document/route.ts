@@ -4,8 +4,8 @@ import pdf from 'pdf-parse';
 
 // Use same key rotation as chat
 const keys = [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_SECONDARY
+    process.env.GROQ_API_KEY,
+
 ].filter(Boolean);
 
 export async function POST(req: Request) {

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     // 1. Perform Search on Legal DB
     const relevantRights = searchLegalRights(message);
 
-    // 2. Return Direct RAG Response
+    // 2. Return Direct RAG Response (No External API - Pure Local Intelligence)
     let finalMessage = "";
     let action = "NONE";
 

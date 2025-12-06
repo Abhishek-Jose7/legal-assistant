@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { GraduationCap, Heart, Briefcase, Home, Users, Search, ChevronRight } from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 
@@ -153,19 +153,19 @@ export default function PersonasSection() {
         </div>
       </div>
 
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#F5EEDC] overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl font-bold text-[#0F3D3E] flex items-center gap-2">
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-3xl bg-[#F5EEDC] max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="mb-2 shrink-0">
+            <DialogTitle className="text-2xl font-bold text-[#0F3D3E] flex items-center gap-2">
               {selectedTopic?.title}
-            </SheetTitle>
-            <SheetDescription>
+            </DialogTitle>
+            <DialogDescription>
               Relevant legal rights from our knowledge base
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <ScrollArea className="h-[calc(100vh-120px)] pr-4">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 pr-4 -mr-4">
+            <div className="space-y-6 pb-6 pr-4">
               {filteredRights.length > 0 ? (
                 filteredRights.map((right) => (
                   <Card key={right.id} className="border border-[#C8AD7F]/40 bg-white/50 backdrop-blur-sm">
@@ -205,8 +205,8 @@ export default function PersonasSection() {
               )}
             </div>
           </ScrollArea>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
