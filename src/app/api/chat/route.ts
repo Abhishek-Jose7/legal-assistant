@@ -11,20 +11,32 @@ const groq = new Groq({
 // Load data using shared lib
 const legalRightsDB = loadLegalData();
 
+// Helper to clean query
+const cleanQuery = (q: string) => q.trim().toLowerCase();
+
 const searchLegalRights = (query: string) => {
+  if (!query || query.length < 2) return [];
   if (legalRightsDB.length === 0) return [];
-  const lowerQuery = query.toLowerCase();
+
+  const lowerQuery = cleanQuery(query);
   const searchTerms = lowerQuery.split(" ").filter((t: string) => t.length > 3);
 
   return legalRightsDB.map((right) => {
     let score = 0;
+    // Exact/Strong matches
     if (right.title.toLowerCase().includes(lowerQuery)) score += 10;
     if (right.category.toLowerCase().includes(lowerQuery)) score += 5;
+
+    // Tag matches
     if (right.tags.some((t: string) => lowerQuery.includes(t.toLowerCase()))) score += 5;
+
+    // Keyword matches
     searchTerms.forEach((term: string) => {
       if (right.summary.toLowerCase().includes(term)) score += 2;
       if (right.title.toLowerCase().includes(term)) score += 3;
+      if (right.category.toLowerCase().includes(term)) score += 2;
     });
+
     return { ...right, score };
   })
     .filter((r) => r.score > 0)
@@ -33,9 +45,18 @@ const searchLegalRights = (query: string) => {
 };
 
 export async function POST(req: Request) {
-  try {
-    const { message, userId } = await req.json();
+  let message = "";
+  let userId = null;
 
+  try {
+    const body = await req.json();
+    message = body.message || "";
+    userId = body.userId || null;
+  } catch (e) {
+    return NextResponse.json({ message: "Invalid Request Body" }, { status: 400 });
+  }
+
+  try {
     // 1. Simple Guard for Greetings
     const greetings = ["hi", "hello", "hey", "greetings"];
     if (greetings.includes(message.trim().toLowerCase())) {
@@ -106,6 +127,11 @@ export async function POST(req: Request) {
 
     If the known rights are empty, use your general legal knowledge to fill the JSON, but mention "General Legal Info" in topic.
     If the user asks for a specific template/draft, set "type" to "simple" and provide the draft in "message".
+    
+    IMPORTANT: CITATIONS REQUIRED.
+    Where possible, you MUST cite specific sections of Indian Acts (e.g., "Section 21 of the Rent Control Act", "Section 354 IPC").
+    If you cite a law, try to format it as: [Section X of Act Y](https://indiankanoon.org/search/?formInput=Section+X+of+Act+Y)
+    This builds trust.
     `;
 
     const completion = await groq.chat.completions.create({
@@ -141,12 +167,8 @@ export async function POST(req: Request) {
     if (openRouterKey) {
       try {
         console.log("Attempting OpenRouter Fallback...");
-        const { message } = await req.clone().json().catch(() => ({ message: "" })); // Need clone because body was read
 
-        // Re-construct system prompt locally or just use a simplified one since we can't easily access 'systemPrompt' from try block scope without moving it.
-        // Actually, we can just ask it simply or use the message. The RAG context is lost if we don't reconstruct it.
-        // To do this properly, let's just do a search again to get context, similar to RAG fallback.
-
+        // RE-RUN SEARCH for OpenRouter Context
         const fallbackRights = searchLegalRights(message);
         const contextStr = fallbackRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
 
@@ -175,7 +197,7 @@ export async function POST(req: Request) {
             "HTTP-Referer": "http://localhost:3000",
           },
           body: JSON.stringify({
-            model: "meta-llama/llama-3-8b-instruct:free", // Use free tier or better if available
+            model: "meta-llama/llama-3-8b-instruct:free",
             messages: [
               { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
               { role: "user", content: backupPrompt }
@@ -203,12 +225,8 @@ export async function POST(req: Request) {
     }
 
     // 2. FALLBACK: Use RAG data if AI fails (e.g., Invalid Key, Rate Limit)
-    // We can access 'relevantRights' if we move it to a higher scope or re-calculate it.
-    // Since 'relevantRights' was defined inside the try block, we need to redefine it or move it up.
-    // For safety/cleanliness, let's re-run the fast search here to ensure we have data.
-
     try {
-      const { message } = await req.json().catch(() => ({ message: "" }));
+      // Use the already-parsed 'message' from top scope
       const fallbackRights = searchLegalRights(message);
 
       if (fallbackRights.length > 0) {

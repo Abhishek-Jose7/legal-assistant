@@ -1,10 +1,4 @@
 import { NextResponse } from 'next/server';
-import Groq from "groq-sdk";
-
-// Initialize Groq
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
 
 export async function POST(req: Request) {
     try {
@@ -15,69 +9,92 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        // 1. Extract Text
-        let extractedText = "";
-
-        // PDF parsing temporarily disabled to fix Vercel/Next.js build binary issues
-        if (file.type === "application/pdf") {
-            return NextResponse.json({ error: "PDF analysis is currently unavailable. Please copy the text into a .txt file and upload it." }, { status: 400 });
-        } else if (file.type.startsWith("text/")) {
-            extractedText = await file.text();
-        } else {
-            return NextResponse.json({ error: "Only .txt files are currently supported." }, { status: 400 });
+        const openRouterKey = process.env.OPENROUTER_API_KEY;
+        if (!openRouterKey) {
+            return NextResponse.json({ error: "Service unavailable (Key Config Missing)" }, { status: 503 });
         }
 
-        // 2. Truncate for context window
-        const textContext = extractedText.slice(0, 30000);
+        let contentPayload: any[] = [];
+        let model = "meta-llama/llama-3-8b-instruct:free";
 
-        // 3. AI Analysis
-        const prompt = `
-    You are an expert legal AI. Analyze the following legal document content:
-    "${textContext}"
+        // 1. Handle Images (Snap & Audit)
+        if (file.type.startsWith("image/")) {
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+            const base64 = buffer.toString('base64');
+            const dataUrl = `data:${file.type};base64,${base64}`;
 
-    Output the analysis strictly in this JSON format:
-    {
-      "summary": "2-4 sentence summary",
-      "category": "Legal Category (e.g. Tenant Law - Eviction)",
-      "clauses": ["Important clause 1", "Deadline: 30 days"],
-      "risks": ["Risk 1", "Risk 2"],
-      "actions": ["Action 1", "Action 2"],
-      "rights": ["Right 1", "Right 2"],
-      "lawyer_recommended": true
-    }
-    `;
+            contentPayload = [
+                { type: "text", text: "Analyze this legal document image. Extract the text and risk factors." },
+                { type: "image_url", image_url: { url: dataUrl } }
+            ];
+            model = "meta-llama/llama-3.2-11b-vision-instruct:free";
+        }
+        // 2. Handle Text
+        else if (file.type === "text/plain") {
+            const text = await file.text();
+            contentPayload = [{ type: "text", text: `Analyze this legal document text:\n\n${text.slice(0, 20000)}` }];
+        }
+        else {
+            return NextResponse.json({ error: "Supported formats: .txt, .jpg, .png" }, { status: 400 });
+        }
 
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a legal document analyzer. Return only valid JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "llama3-70b-8192",
-            temperature: 0.2,
-            response_format: { type: "json_object" },
+        // 3. AI Analysis via OpenRouter
+        const systemPrompt = `
+        You are an expert legal AI. Analyze the provided document (text or image).
+        Identify key clauses, potential risks ("danger clauses"), and actionable advice.
+        
+        Output stricly valid JSON:
+        {
+          "summary": "Brief summary of the document",
+          "category": "Legal Category (e.g. Tenancy, Employment)",
+          "clauses": ["Key Clause 1", "Key Clause 2"],
+          "risks": ["Risk 1 (High Severity)", "Risk 2"],
+          "actions": ["Recommended Action 1", "Recommended Action 2"],
+          "lawyer_recommended": boolean
+        }
+        `;
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${openRouterKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:3000",
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: contentPayload }
+                ],
+                response_format: { type: "json_object" }
+            })
         });
 
-        const text = completion.choices[0]?.message?.content || "{}";
+        if (!response.ok) {
+            throw new Error(`OpenRouter Error: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        const textResponse = data.choices[0]?.message?.content || "{}";
 
         let analysisData;
         try {
-            analysisData = JSON.parse(text);
+            analysisData = JSON.parse(textResponse);
         } catch (e) {
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                analysisData = JSON.parse(jsonMatch[0]);
-            } else {
-                analysisData = { summary: "Could not parse analysis. Please try again.", risks: [] };
-            }
+            // Fuzzy parse
+            const match = textResponse.match(/\{[\s\S]*\}/);
+            analysisData = match ? JSON.parse(match[0]) : { summary: "Raw Analysis: " + textResponse, risks: [] };
         }
 
         return NextResponse.json({
             analysis: analysisData,
-            extractedText: textContext // Send back text for follow-up context
+            extractedText: "Text extracted from document/image" // Simplified for now
         });
 
     } catch (error) {
         console.error("Analysis Error:", error);
-        return NextResponse.json({ error: "Failed to analyze document" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to analyze document. Please try again." }, { status: 500 });
     }
 }
