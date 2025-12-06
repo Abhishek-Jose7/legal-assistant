@@ -136,7 +136,7 @@ export default function KnowYourRights() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-3xl bg-[#F5EEDC] max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogContent className="max-w-4xl bg-[#F5EEDC] max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="mb-2 shrink-0">
             <DialogTitle className="text-2xl font-bold text-[#0F3D3E] flex items-center gap-2">
               {selectedCategory?.title}

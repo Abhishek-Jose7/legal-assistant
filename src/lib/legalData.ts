@@ -14,7 +14,7 @@ export interface LegalRight {
 
 export const loadLegalData = (): LegalRight[] => {
     try {
-        const dataDir = process.cwd();
+        const dataDir = path.join(process.cwd(), 'data');
         // Read all JSON files starting with 'legal_'
         const files = fs.readdirSync(dataDir).filter(file => file.endsWith('.json') && file.startsWith('legal_'));
 
