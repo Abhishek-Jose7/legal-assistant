@@ -1,0 +1,513 @@
+{
+  "platform": {
+    "name": "Legal Spectra",
+    "version": "1.0",
+    "last_updated": "2025-12-06",
+    "description": "Comprehensive LegalTech dataset for production deployment",
+    "total_topics": 50,
+    "total_sections": 8
+  },
+  "metadata": {
+    "creator": "Legal Spectra Development Team",
+    "language": "Simple/Plain English",
+    "jurisdiction": "India",
+    "scope": "Multi-state coverage with state-specific variations",
+    "accessibility": "All content in plain language for public understanding"
+  },
+  "legal_rights_hub": [
+    {
+      "id": "TR001",
+      "category": "Tenant Rights",
+      "title": "Right to Receive Written Rent Receipt",
+      "short_summary": "Your landlord must provide a signed written rent receipt every time you pay rent.",
+      "law_reference": [
+        {
+          "act_name": "Rent Control Act (varies by state)",
+          "sections": [
+            "General provision - issuance of rent receipts"
+          ],
+          "notes": "Exact section numbers differ by jurisdiction."
+        }
+      ],
+      "explanation": "A written receipt protects tenants from false claims of unpaid rent. Must include amount paid, date, period, and property details. Refusal is violation under most Rent Control Acts.",
+      "your_right": "You have the right to demand a written receipt for every rent payment, regardless of payment method.",
+      "consequences_of_violation": "Landlords may falsely claim unpaid rent, leading to wrongful eviction attempts.",
+      "actions_if_violated": [
+        "Pay rent via bank transfer/cheque/UPI",
+        "Request written receipt immediately",
+        "Document refusal in writing",
+        "File complaint with housing authority",
+        "Use evidence in court if needed"
+      ],
+      "time_limit": "Complaint within 3 years",
+      "templates": [
+        "Rent Receipt Demand Notice",
+        "Complaint to Housing Authority"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Mandates written receipts",
+        "Karnataka": "Similar provisions",
+        "Delhi": "Digital receipts mandated"
+      },
+      "severity_level": "Medium",
+      "tags": [
+        "rent",
+        "proof",
+        "eviction",
+        "housing",
+        "documentation"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR002",
+      "category": "Tenant Rights",
+      "title": "Right to Privacy and Quiet Enjoyment",
+      "short_summary": "You have the right to peaceful use of your home. Landlord cannot harass you or enter without notice.",
+      "law_reference": [
+        {
+          "act_name": "Indian Contract Act 1872",
+          "sections": [
+            "Section 55"
+          ],
+          "notes": "Implied term in lease"
+        },
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Tenant protection provisions"
+          ],
+          "notes": "Explicit quiet enjoyment clauses"
+        }
+      ],
+      "explanation": "Quiet enjoyment means peaceful use without unreasonable landlord interference. Cannot enter without 24-48 hours notice. Cannot create uninhabitable conditions.",
+      "your_right": "You have the right to peaceful, uninterrupted use of your home without landlord interference.",
+      "consequences_of_violation": "Sue for damages, request rent reduction, terminate lease without penalty.",
+      "actions_if_violated": [
+        "Keep harassment diary",
+        "Send written notice",
+        "Photograph evidence",
+        "File complaint with authority",
+        "Document in writing",
+        "Approach welfare board",
+        "Sue for damages"
+      ],
+      "time_limit": "Complaint within 3 years",
+      "templates": [
+        "Notice to Respect Privacy",
+        "Harassment Complaint",
+        "Lease Termination Notice"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Section 12 protections",
+        "Karnataka": "Explicit procedures",
+        "Delhi": "Strengthened protections"
+      },
+      "severity_level": "High",
+      "tags": [
+        "privacy",
+        "harassment",
+        "landlord",
+        "quiet enjoyment"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR003",
+      "category": "Tenant Rights",
+      "title": "Right to Maintenance and Livable Conditions",
+      "short_summary": "Your home must be safe and clean. Landlord must repair within reasonable time.",
+      "law_reference": [
+        {
+          "act_name": "Rent Control Acts",
+          "sections": [
+            "Landlord maintenance obligations"
+          ],
+          "notes": "Universally applicable"
+        },
+        {
+          "act_name": "Building and Maintenance Act",
+          "sections": [
+            "Safety standards"
+          ],
+          "notes": "Municipal enforcement"
+        }
+      ],
+      "explanation": "Landlords responsible for habitable conditions: functional water/electricity, no structural damage, proper sanitation, weather protection.",
+      "your_right": "You have the right to live in safe property with landlord repairing within 7-14 days.",
+      "consequences_of_violation": "Withhold 20-50% rent, hire contractor and deduct costs, terminate lease.",
+      "actions_if_violated": [
+        "Document issues with photos",
+        "Send written repair request",
+        "Send legal notice after 7 days",
+        "Contact municipal corporation",
+        "File complaint",
+        "Hire contractor at landlord expense",
+        "Deduct from rent"
+      ],
+      "time_limit": "7-14 days urgent, 30 days non-urgent",
+      "templates": [
+        "Repair Request Notice",
+        "Rent Withholding Notice",
+        "Emergency Repair Letter"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Mandates specific timelines",
+        "Delhi": "7-day urgent repairs",
+        "Karnataka": "Detailed obligations"
+      },
+      "severity_level": "High",
+      "tags": [
+        "maintenance",
+        "habitability",
+        "repairs",
+        "safety"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR004",
+      "category": "Tenant Rights",
+      "title": "Right to Deposit Return",
+      "short_summary": "Your security deposit must be returned in full within 30-45 days after you move out.",
+      "law_reference": [
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Deposit return provisions"
+          ],
+          "notes": "Timeframes vary by state"
+        }
+      ],
+      "explanation": "Landlord must return deposit within 30-45 days. Only legitimate deductions allowed (actual damage, unpaid rent). No deductions for cleaning or penalty.",
+      "your_right": "You have the right to recover your full deposit minus only documented deductions.",
+      "consequences_of_violation": "Sue for deposit + interest + damages.",
+      "actions_if_violated": [
+        "Get property inspection before vacating",
+        "Ensure bills paid",
+        "Document condition",
+        "Get written confirmation",
+        "Request return in writing",
+        "Send legal notice",
+        "File complaint",
+        "Calculate interest"
+      ],
+      "time_limit": "File within 3 years",
+      "templates": [
+        "Deposit Demand Notice",
+        "Property Inspection Checklist",
+        "Refund Complaint"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "45-day return with 9% interest",
+        "Karnataka": "30-day return",
+        "Delhi": "Separate account required"
+      },
+      "severity_level": "Medium",
+      "tags": [
+        "deposit",
+        "refund",
+        "money",
+        "financial"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR005",
+      "category": "Tenant Rights",
+      "title": "Right to Challenge Illegal Eviction",
+      "short_summary": "Your landlord cannot evict you without court order. Self-help eviction is illegal and criminal.",
+      "law_reference": [
+        {
+          "act_name": "CrPC",
+          "sections": [
+            "Section 336"
+          ],
+          "notes": "Wrongful restraint"
+        },
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Eviction procedures"
+          ],
+          "notes": "Court order mandatory"
+        }
+      ],
+      "explanation": "Only court can order eviction. Self-help (lock-out, removing belongings, threats) is illegal and criminal. Valid reasons: non-payment (3+ months), lease violation, contract end.",
+      "your_right": "You have the right to remain until court orders eviction.",
+      "consequences_of_violation": "File FIR for criminal offense, file civil suit, get court reentry order.",
+      "actions_if_violated": [
+        "File FIR immediately",
+        "Document illegality",
+        "File urgent civil suit",
+        "Apply for ex-parte order",
+        "If notice received, respond within time",
+        "Attend hearings",
+        "Provide proof"
+      ],
+      "time_limit": "FIR immediately, suit within 3 years",
+      "templates": [
+        "FIR for Illegal Eviction",
+        "Reply to Notice",
+        "Suit for Reentry"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Anti-illegal eviction provisions",
+        "Delhi": "Criminalizes self-help",
+        "Karnataka": "Court order mandatory"
+      },
+      "severity_level": "Critical",
+      "tags": [
+        "eviction",
+        "illegal",
+        "criminal",
+        "housing"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR006",
+      "category": "Tenant Rights",
+      "title": "Right to Reasonable Rent Increase",
+      "short_summary": "Rent cannot be increased arbitrarily. Must follow legal limits and proper notice.",
+      "law_reference": [
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Rent increase provisions"
+          ],
+          "notes": "Typically 5-10% annual"
+        }
+      ],
+      "explanation": "Increases must follow legal limits (5-10% annually) with 30-90 days advance notice. Unreasonable or improper increases can be challenged.",
+      "your_right": "You have the right to reasonable increases with proper notice.",
+      "consequences_of_violation": "Refuse increase, continue paying old rent, sue, terminate lease.",
+      "actions_if_violated": [
+        "Check state law limits",
+        "Verify notice period",
+        "Calculate percentage",
+        "Send objection",
+        "Request reduction",
+        "Send legal notice",
+        "File complaint",
+        "Continue old rent"
+      ],
+      "time_limit": "File within 30 days of notice",
+      "templates": [
+        "Increase Objection",
+        "Complaint to Authority",
+        "Termination Notice"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "5-10% with 2 months notice",
+        "Karnataka": "5% maximum",
+        "Delhi": "Clear limits specified"
+      },
+      "severity_level": "Medium",
+      "tags": [
+        "rent",
+        "increase",
+        "landlord",
+        "financial"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR007",
+      "category": "Tenant Rights",
+      "title": "Right to Refund of Illegal Charges",
+      "short_summary": "Landlords can only charge rent and one security deposit. All other charges must be refunded.",
+      "law_reference": [
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Permitted charges provisions"
+          ],
+          "notes": "Prohibits multiple deposits"
+        }
+      ],
+      "explanation": "Beyond rent and one deposit, no additional deposits, maintenance fees, advance rent, or hidden charges allowed. All illegal charges recoverable with interest.",
+      "your_right": "You have the right to pay only agreed rent and one deposit.",
+      "consequences_of_violation": "Sue for refund + 12% interest + compensation.",
+      "actions_if_violated": [
+        "Document all charges",
+        "Review agreement",
+        "Identify illegal charges",
+        "Send refund demand",
+        "Provide proof",
+        "Send legal notice",
+        "File complaint",
+        "File suit"
+      ],
+      "time_limit": "Complaint within 3 years",
+      "templates": [
+        "Charges Refund Demand",
+        "Charge Sheet",
+        "Refund Complaint"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Only rent and deposit",
+        "Karnataka": "Strict enforcement",
+        "Delhi": "Explicitly forbids"
+      },
+      "severity_level": "Medium",
+      "tags": [
+        "charges",
+        "money",
+        "refund",
+        "illegal"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR008",
+      "category": "Tenant Rights",
+      "title": "Right to Know Landlord Identity",
+      "short_summary": "Your landlord must identify themselves and be traceable for legal proceedings.",
+      "law_reference": [
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Landlord identification requirements"
+          ],
+          "notes": "Disclosure mandatory"
+        }
+      ],
+      "explanation": "Landlord must provide legal name, address, contact details. If agent collects rent, actual owner's details must be disclosed. Unknown landlords cannot enforce eviction.",
+      "your_right": "You have the right to know landlord's legal identity.",
+      "consequences_of_violation": "Lease becomes void, refuse payment, get protection against eviction.",
+      "actions_if_violated": [
+        "Demand full name and address",
+        "Ask for ownership proof",
+        "Request agent's authority",
+        "Get details in writing",
+        "Verify ownership",
+        "Note false details",
+        "Refuse payment to unknowns",
+        "File complaint"
+      ],
+      "time_limit": "Anytime during tenancy",
+      "templates": [
+        "Verification Request",
+        "Unknown Landlord Affidavit",
+        "Pay into Court Application"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Registration helps verify",
+        "Delhi": "Mandatory disclosure",
+        "Karnataka": "Verifiable with records"
+      },
+      "severity_level": "High",
+      "tags": [
+        "landlord",
+        "identity",
+        "verification",
+        "documentation"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR009",
+      "category": "Tenant Rights",
+      "title": "Right to Dispute Resolution Before Eviction",
+      "short_summary": "Your landlord must give you a chance to fix the problem (cure period) before eviction.",
+      "law_reference": [
+        {
+          "act_name": "State Rent Control Acts",
+          "sections": [
+            "Cure period provisions"
+          ],
+          "notes": "30-90 days for rent"
+        }
+      ],
+      "explanation": "Before eviction filing, landlords must give cure period. Usually 30-90 days to pay arrears or fix violation. If cured, eviction abandoned.",
+      "your_right": "You have the right to fix the issue before legal eviction.",
+      "consequences_of_violation": "Eviction dismissal if procedure not followed.",
+      "actions_if_violated": [
+        "Immediately cure if possible",
+        "Pay outstanding rent",
+        "Get written acknowledgment",
+        "Propose settlement",
+        "Respond to notice",
+        "Ask for adjournment",
+        "Request mediation"
+      ],
+      "time_limit": "30-90 days from notice",
+      "templates": [
+        "Response with Cure Plan",
+        "Payment Proof",
+        "Mediation Request"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Mandatory cure period",
+        "Delhi": "60-day cure for non-payment",
+        "Karnataka": "Mandatory before filing"
+      },
+      "severity_level": "High",
+      "tags": [
+        "eviction",
+        "cure",
+        "settlement",
+        "negotiation"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    },
+    {
+      "id": "TR010",
+      "category": "Tenant Rights",
+      "title": "Right to Lease Agreement in Writing",
+      "short_summary": "Your tenancy agreement must be in writing and signed by both landlord and tenant.",
+      "law_reference": [
+        {
+          "act_name": "Indian Contract Act 1872",
+          "sections": [
+            "Section 65"
+          ],
+          "notes": "Long-term leases must be written"
+        }
+      ],
+      "explanation": "Written agreements protect both parties by clearly stating rent, duration, responsibilities. Oral leases create disputes and are hard to prove.",
+      "your_right": "You have the right to a written, signed agreement with all terms.",
+      "consequences_of_violation": "Disputes harder without proof. Oral lease is defense against unfair claims.",
+      "actions_if_violated": [
+        "Insist on written agreement",
+        "Get in native language",
+        "Include all verbal terms",
+        "Read carefully",
+        "Keep copy",
+        "Register if required",
+        "Create memo if oral exists",
+        "Use as evidence"
+      ],
+      "time_limit": "At start of tenancy",
+      "templates": [
+        "Rent Agreement",
+        "Demand for Agreement",
+        "Registration Application"
+      ],
+      "state_specific_notes": {
+        "Maharashtra": "Registration recommended for rent >5000",
+        "Karnataka": "Similar registration norms",
+        "Delhi": "May be mandatory"
+      },
+      "severity_level": "High",
+      "tags": [
+        "lease",
+        "agreement",
+        "documentation",
+        "contract"
+      ],
+      "language_level": "Simple",
+      "disclaimer": "This summary explains legal rights in simple language. It does not replace advice from a licensed lawyer."
+    }
+  ]
+}

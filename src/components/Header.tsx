@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Scale, X } from "lucide-react"
@@ -10,18 +9,32 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useScrollPosition } from "@/hooks/useAnimation"
 import AnimatedButton from "@/components/animations/AnimatedButton"
 import { staggerContainer, staggerItem } from "@/components/animations/variants"
+import { useUser } from "@clerk/nextjs"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const scrollPosition = useScrollPosition()
   const [isVisible, setIsVisible] = useState(false)
+  const { user } = useUser()
+  const [userType, setUserType] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (user?.id) {
+      const fetchType = async () => {
+        const { data } = await supabase.from('profiles').select('user_type').eq('clerk_id', user.id).single()
+        if (data) setUserType(data.user_type)
+      }
+      fetchType()
+    }
+  }, [user])
 
   useEffect(() => {
     // Show header after scrolling down 200px
     setIsVisible(scrollPosition > 200)
   }, [scrollPosition])
 
-  const navItems = [
+  const baseNavItems = [
     { label: "Ask AI Assistant", href: "/" },
     { label: "Know Your Rights", href: "/rights" },
     { label: "Templates", href: "/templates" },
@@ -55,8 +68,6 @@ export default function Header() {
   // I will assume the user meant "For Lawyers" button. 
   // And I'll remove the Duplicate "Find Lawyer" from base items carefully.
 
-  ]
-
   return (
     <AnimatePresence>
       {isVisible && (
@@ -65,11 +76,10 @@ export default function Header() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
-            scrollPosition > 10
-              ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-md border-[#C8AD7F]/30"
-              : "bg-[#F5EEDC]/95 backdrop-blur supports-[backdrop-filter]:bg-[#F5EEDC]/80 border-[#C8AD7F]/20"
-          }`}
+          className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${scrollPosition > 10
+            ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-md border-[#C8AD7F]/30"
+            : "bg-[#F5EEDC]/95 backdrop-blur supports-[backdrop-filter]:bg-[#F5EEDC]/80 border-[#C8AD7F]/20"
+            }`}
         >
           <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
             {/* Logo */}
