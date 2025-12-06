@@ -8,7 +8,9 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import Link from "next/link" // To link to chat
+import Link from "next/link"
+import { useUser } from "@clerk/nextjs"
+import { supabase } from "@/lib/supabaseClient"
 
 const rightsCategories = [
   {
@@ -79,9 +81,11 @@ interface LegalRight {
 }
 
 export default function KnowYourRights() {
+  const { user } = useUser()
   const [rightsData, setRightsData] = useState<LegalRight[]>([])
   const [selectedCategory, setSelectedCategory] = useState<typeof rightsCategories[0] | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [sortedCategories, setSortedCategories] = useState(rightsCategories)
 
   useEffect(() => {
     fetch('/api/legal-rights')
@@ -89,6 +93,66 @@ export default function KnowYourRights() {
       .then(data => setRightsData(data))
       .catch(err => console.error("Failed to load legal rights:", err))
   }, [])
+
+  // Personalization Effect
+  useEffect(() => {
+    async function personalize() {
+      if (!user) return;
+
+      try {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('clerk_id', user.id).single();
+
+        if (profile) {
+          const newOrder = [...rightsCategories].sort((a, b) => {
+            let scoreA = 0;
+            let scoreB = 0;
+
+            // Scoring Logic A
+            if (profile.user_type === 'Student') {
+              if (a.title.includes('Student')) scoreA += 5;
+              if (a.title.includes('Cyber')) scoreA += 2;
+            }
+            if (profile.user_type === 'Freelancer' || profile.user_type === 'Professional') {
+              if (a.title.includes('Workplace')) scoreA += 5;
+              if (a.title.includes('Consumer')) scoreA += 2;
+            }
+            if (profile.gender === 'Female') {
+              if (a.title.includes('Women')) scoreA += 5;
+              if (a.title.includes('Workplace')) scoreA += 2;
+            }
+            // Age Factor
+            if (profile.age && profile.age > 60) {
+              if (a.title.includes('Consumer')) scoreA += 3; // Senior citizens get scam protection often
+            }
+
+            // Scoring Logic B
+            if (profile.user_type === 'Student') {
+              if (b.title.includes('Student')) scoreB += 5;
+              if (b.title.includes('Cyber')) scoreB += 2;
+            }
+            if (profile.user_type === 'Freelancer' || profile.user_type === 'Professional') {
+              if (b.title.includes('Workplace')) scoreB += 5;
+              if (b.title.includes('Consumer')) scoreB += 2;
+            }
+            if (profile.gender === 'Female') {
+              if (b.title.includes('Women')) scoreB += 5;
+              if (b.title.includes('Workplace')) scoreB += 2;
+            }
+            if (profile.age && profile.age > 60) {
+              if (b.title.includes('Consumer')) scoreB += 3;
+            }
+
+            return scoreB - scoreA;
+          });
+
+          setSortedCategories(newOrder);
+        }
+      } catch (err) {
+        console.error("Personalization error:", err);
+      }
+    }
+    personalize();
+  }, [user]);
 
   const handleCardClick = (category: typeof rightsCategories[0]) => {
     setSelectedCategory(category)
@@ -115,7 +179,7 @@ export default function KnowYourRights() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {rightsCategories.map((category) => {
+          {sortedCategories.map((category) => {
             const Icon = category.icon
             return (
               <Card
@@ -139,7 +203,7 @@ export default function KnowYourRights() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl bg-[#F5EEDC] h-[85vh] flex flex-col overflow-hidden p-0 gap-0 rounded-xl">
+        <DialogContent className="w-full max-w-4xl md:max-w-6xl bg-[#F5EEDC] h-[85vh] flex flex-col overflow-hidden p-0 gap-0 rounded-xl">
           <DialogHeader className="p-6 pb-2 shrink-0 bg-white/50 border-b border-[#C8AD7F]/20">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl ${selectedCategory?.color} flex items-center justify-center shrink-0`}>

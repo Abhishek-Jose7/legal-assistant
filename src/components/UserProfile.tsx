@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import { Loader2, MessageSquare, Clock } from "lucide-react"
 import { toast } from "sonner" // Assuming sonner is installed or handle alert
 
 export default function UserProfile() {
@@ -21,13 +21,24 @@ export default function UserProfile() {
         age: "",
         gender: "",
     })
+    const [sessions, setSessions] = useState<any[]>([])
 
     // Load profile when user is loaded
     useEffect(() => {
         if (user?.id) {
             fetchProfile(user.id)
+            fetchSessions(user.id)
         }
     }, [user])
+
+    const fetchSessions = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('chat_sessions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        if (data) setSessions(data);
+    }
 
     const fetchProfile = async (userId: string) => {
         setLoading(true)
@@ -185,6 +196,43 @@ export default function UserProfile() {
                             <p className="text-xs text-slate-500">
                                 This helps Lexi.AI tailor legal advice and document drafts specifically for your needs.
                             </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5" /> Previous Consultations
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {sessions.length > 0 ? (
+                                    sessions.slice(0, 5).map((session) => (
+                                        <div key={session.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-slate-800 text-sm truncate max-w-[200px] md:max-w-[300px]">
+                                                    {session.title || "Untitled Consultation"}
+                                                </span>
+                                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" />
+                                                    {new Date(session.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <Button asChild variant="ghost" size="sm" className="text-[#0F3D3E] hover:text-[#0F3D3E]/80">
+                                                <a href={`/chat`}>Open</a>
+                                            </Button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-500 text-center py-4">No conversation history found.</p>
+                                )}
+                                {sessions.length > 0 && (
+                                    <Button asChild variant="link" className="w-full text-[#0F3D3E]">
+                                        <a href="/chat">View All in Chat</a>
+                                    </Button>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 

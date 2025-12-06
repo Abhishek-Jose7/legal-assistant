@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ShieldCheck, AlertTriangle, FileText, CheckCircle2, ChevronRight, RefreshCcw } from "lucide-react"
+import { ShieldCheck, AlertTriangle, FileText, CheckCircle2, ChevronRight, RefreshCcw, ShoppingCart, Briefcase, Users2 } from "lucide-react"
 
 const quizData: Record<string, any[]> = {
     "general": [
@@ -130,6 +130,66 @@ const quizData: Record<string, any[]> = {
             description: "Protection against ransomware or device loss.",
             options: [{ label: "Yes, Automated", value: 25 }, { label: "Manually/Rarely", value: 10 }, { label: "No", value: 0 }]
         }
+    ],
+    "consumer": [
+        {
+            id: 1,
+            question: "Do you keep receipts/invoices for major purchases?",
+            description: "Essential for claiming warranty or filing complaints.",
+            options: [{ label: "Always", value: 30 }, { label: "Sometimes", value: 10 }, { label: "Rarely/Never", value: 0 }]
+        },
+        {
+            id: 2,
+            question: "Do you check for the 'Best Before' date?",
+            description: "Consuming expired goods is a health risk and a violation of your rights.",
+            options: [{ label: "Always", value: 30 }, { label: "Sometimes", value: 10 }, { label: "No", value: 0 }]
+        },
+        {
+            id: 3,
+            question: "Are you aware of the Consumer Helpline number?",
+            description: "Quickest way to resolve small grievances.",
+            options: [{ label: "Yes", value: 40 }, { label: "No", value: 0 }]
+        }
+    ],
+    "workplace": [
+        {
+            id: 1,
+            question: "Do you have a written Offer Letter or Appointment Letter?",
+            description: "Proof of employment terms.",
+            options: [{ label: "Yes", value: 30 }, { label: "No", value: 0 }]
+        },
+        {
+            id: 2,
+            question: "Are you aware of your company's POSH (Sexual Harassment) policy?",
+            description: "Mandatory for companies with 10+ employees.",
+            options: [{ label: "Yes", value: 30 }, { label: "No", value: 0 }]
+        },
+        {
+            id: 3,
+            question: "Do you check your Provident Fund (PF) deductions regularly?",
+            description: "Ensures your employer is actually depositing your money.",
+            options: [{ label: "Yes", value: 40 }, { label: "No", value: 0 }]
+        }
+    ],
+    "family": [
+        {
+            id: 1,
+            question: "Are your property papers in joint names (Spouse/Parents)?",
+            description: "Eases transfer in case of demise.",
+            options: [{ label: "Yes", value: 30 }, { label: "Some", value: 15 }, { label: "No", value: 0 }]
+        },
+        {
+            id: 2,
+            question: "Are you aware of local inheritance laws?",
+            description: "Prevents bitter family feuds later.",
+            options: [{ label: "Yes", value: 30 }, { label: "Vaguely", value: 10 }, { label: "No", value: 0 }]
+        },
+        {
+            id: 3,
+            question: "Do you have medical insurance for all dependent family members?",
+            description: "Protects family wealth from medical emergencies.",
+            options: [{ label: "Yes", value: 40 }, { label: "Partial", value: 10 }, { label: "No", value: 0 }]
+        }
     ]
 };
 
@@ -138,6 +198,9 @@ const topics = [
     { id: "tenant", label: "Tenant Safeguards", icon: FileText, desc: "Rent agreements, deposits, and eviction rights." },
     { id: "freelancer", label: "Freelancer/Contractor", icon: CheckCircle2, desc: "Contracts, payments, and IP rights." },
     { id: "digital", label: "Digital Safety", icon: AlertTriangle, desc: "Cyber hygiene, passwords, and data privacy." },
+    { id: "consumer", label: "Consumer Awareness", icon: ShoppingCart, desc: "Receipts, warranties, and complaints." },
+    { id: "workplace", label: "Workplace Rights", icon: Briefcase, desc: "Contracts, POSH, and Provident Fund." },
+    { id: "family", label: "Family Security", icon: Users2, desc: "Inheritance, joint assets, and insurance." },
 ]
 
 export default function LegalHealthQuiz() {

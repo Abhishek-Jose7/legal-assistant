@@ -60,7 +60,7 @@ const RightDetailView = ({ right, isOpen, onClose }: { right: any, isOpen: boole
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-[#F5EEDC] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-3xl md:max-w-5xl bg-[#F5EEDC] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#0F3D3E] flex items-center gap-2">
             <Scale className="h-6 w-6" /> {right.title}
@@ -143,10 +143,10 @@ const RightDetailView = ({ right, isOpen, onClose }: { right: any, isOpen: boole
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button asChild className="flex-1 bg-[#0F3D3E] hover:bg-[#0F3D3E]/90">
-              <a href="/templates">View Templates</a>
+              <Link href="/templates">View Templates</Link>
             </Button>
             <Button asChild variant="outline" className="flex-1 border-[#0F3D3E] text-[#0F3D3E]">
-              <a href="/lawyers">Find Lawyer</a>
+              <Link href="/lawyers">Find Lawyer</Link>
             </Button>
           </div>
         </div>
@@ -165,6 +165,12 @@ export default function AIChatSection() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false)
+
+  // Chat History State
+  const [sessions, setSessions] = useState<any[]>([])
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Mobile sidebar toggle
 
   // State for interactions
   const [expandedSubTopic, setExpandedSubTopic] = useState<string | null>(null)
@@ -172,6 +178,58 @@ export default function AIChatSection() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Load Sessions on Mount
+  useEffect(() => {
+    if (user) {
+      fetchSessions();
+    }
+  }, [user]);
+
+  const fetchSessions = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('chat_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (data) setSessions(data);
+  };
+
+  const loadSession = async (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    setIsLoading(true);
+    // Fetch Messages
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: true });
+
+    if (data) {
+      const formatted: Message[] = data.map(m => ({
+        role: m.role as "user" | "assistant",
+        content: m.content || "",
+        ...(m.meta_data || {})
+      }));
+      setMessages(formatted.length > 0 ? formatted : [{
+        role: "assistant",
+        content: "Hello! This is a past conversation. How can I help you further?",
+      }]);
+    }
+    setIsLoading(false);
+    setIsSidebarOpen(false); // Close sidebar on mobile
+  };
+
+  const startNewChat = () => {
+    setCurrentSessionId(null);
+    setMessages([{
+      role: "assistant",
+      content: "Hello! I'm Lexi, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?",
+    }]);
+    setIsSidebarOpen(false);
+  };
 
   // Auto-scroll
   useEffect(() => {
@@ -187,8 +245,35 @@ export default function AIChatSection() {
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
+    setIsAnalyzingDoc(false)
+    let sessionId = currentSessionId;
 
     try {
+      // 1. Ensure Session Exists
+      if (!sessionId && user) {
+        const { data: newSession, error: sessionError } = await supabase
+          .from('chat_sessions')
+          .insert({ user_id: user.id, title: text.slice(0, 30) + (text.length > 30 ? '...' : '') })
+          .select()
+          .single();
+        if (newSession) {
+          sessionId = newSession.id;
+          setCurrentSessionId(newSession.id);
+          setSessions([newSession, ...sessions]); // Update sidebar
+        }
+      }
+
+      // 2. Save User Message
+      if (sessionId && user) {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          role: 'user',
+          content: text,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // 3. Get AI Response
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,13 +284,24 @@ export default function AIChatSection() {
       })
 
       const data = await response.json()
-      // Directly use the returned JSON object as the message, mapping 'message' to 'content' for display
+      // Directly use the returned JSON object as the message
       const aiMessage: Message = {
         role: "assistant",
         content: data.message,
         ...data
       }
       setMessages((prev) => [...prev, aiMessage])
+
+      // 4. Save AI Message
+      if (sessionId && user) {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          role: 'assistant',
+          content: data.message,
+          meta_data: data, // Store the structured data!
+          created_at: new Date().toISOString()
+        });
+      }
 
     } catch (error) {
       console.error("Chat Error:", error)
@@ -226,8 +322,28 @@ export default function AIChatSection() {
     const userMessage: Message = { role: "user", content: `Analyzed Document: ${file.name}` }
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
+    setIsAnalyzingDoc(true)
 
-    // 2. Upload and Analyze
+    // TODO: Ideally we create the session here too if null, but for now we skip session creation for just upload until a query follows? 
+    // Actually, let's create it on upload if we want to save the history.
+    let sessionId = currentSessionId;
+    if (!sessionId && user) {
+      const { data: newSession } = await supabase
+        .from('chat_sessions')
+        .insert({ user_id: user.id, title: `Doc: ${file.name}` })
+        .select()
+        .single();
+      if (newSession) {
+        sessionId = newSession.id;
+        setCurrentSessionId(newSession.id);
+        setSessions([newSession, ...sessions]);
+        // Save user msg
+        await supabase.from('chat_messages').insert({ session_id: sessionId, role: 'user', content: `Analyzed Document: ${file.name}` });
+      }
+    } else if (sessionId && user) {
+      await supabase.from('chat_messages').insert({ session_id: sessionId, role: 'user', content: `Analyzed Document: ${file.name}` });
+    }
+
     const formData = new FormData()
     formData.append("file", file)
 
@@ -251,11 +367,22 @@ export default function AIChatSection() {
       }
       setMessages((prev) => [...prev, aiMessage])
 
+      // Save AI Response
+      if (sessionId && user) {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          role: 'assistant',
+          content: aiMessage.content,
+          meta_data: aiMessage
+        });
+      }
+
     } catch (error) {
       console.error("Analysis Error:", error)
       setMessages((prev) => [...prev, { role: "assistant", content: "I encountered an error analyzing that document. Please try again with a clear image or text file." }])
     } finally {
       setIsLoading(false)
+      setIsAnalyzingDoc(false)
       // Reset input
       if (fileInputRef.current) fileInputRef.current.value = ""
     }
@@ -280,227 +407,262 @@ export default function AIChatSection() {
   }
 
   return (
-    <section id="ai-assistant" className="w-full py-0 flex flex-col h-full bg-white relative">
-      <div className="flex-1 container mx-auto px-4 md:px-6 py-6 h-full flex flex-col">
-        {!messages.length && (
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              AI Legal Chat Assistant
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Powered by advanced AI to provide instant legal guidance.
-            </p>
-          </div>
-        )}
+    <div className="flex h-full w-full bg-[#F5EEDC] overflow-hidden">
+      {/* Sidebar - Desktop: always visible, Mobile: conditionally visible */}
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-[#C8AD7F]/30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}>
+        <div className="p-4 border-b border-[#C8AD7F]/20 flex items-center justify-between">
+          <h3 className="font-bold text-[#0F3D3E]">History</h3>
+          <Button variant="ghost" size="sm" onClick={startNewChat} className="text-xs border border-[#0F3D3E] text-[#0F3D3E] hover:bg-[#0F3D3E] hover:text-white">
+            + New
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+          {sessions.map(session => (
+            <div
+              key={session.id}
+              onClick={() => loadSession(session.id)}
+              className={`p-3 rounded-lg cursor-pointer text-sm truncate ${currentSessionId === session.id ? 'bg-[#0F3D3E] text-white' : 'hover:bg-slate-100 text-slate-700'}`}
+            >
+              {session.title || 'Untitled Chat'}
+              <div className="text-[10px] opacity-70 mt-1">{new Date(session.created_at).toLocaleDateString()}</div>
+            </div>
+          ))}
+          {sessions.length === 0 && (
+            <div className="text-center text-slate-400 text-xs py-10">No history yet.</div>
+          )}
+        </div>
+      </div>
 
-        <Card className="flex-1 overflow-hidden border-2 shadow-xl flex flex-col bg-slate-50 relative">
-          {/* Chat Header */}
-          <div className="bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm z-10">
-            <div className="flex items-center gap-2">
-              <div className="bg-[#1e3a8a] text-white p-1.5 rounded-lg">
-                <Bot className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800 text-sm">Lexi AI</h3>
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <span className="text-[10px] text-slate-500 font-medium">Online</span>
-                </div>
+      {/* Overlay for mobile sidebar */}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-white">
+        {/* Chat Header */}
+        <div className="bg-white border-b px-4 py-3 flex justify-between items-center shadow-sm z-10 shrink-0">
+          <div className="flex items-center gap-2">
+            {/* Mobile Sidebar Toggle */}
+            <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setIsSidebarOpen(true)}>
+              <svg width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 3C1.22386 3 1 3.22386 1 3.5C1 3.77614 1.22386 4 1.5 4H13.5C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3H1.5ZM1 7.5C1 7.22386 1.22386 7 1.5 7H13.5C13.7761 7 14 7.22386 14 7.5C14 7.77614 13.7761 8 13.5 8H1.5C1.22386 8 1 7.77614 1 7.5ZM1 11.5C1 11.2239 1.22386 11 1.5 11H13.5C13.7761 11 14 11.2239 14 11.5C14 11.7761 13.7761 12 13.5 12H1.5C1.22386 12 1 11.7761 1 11.5Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+            </Button>
+            <div className="bg-[#1e3a8a] text-white p-1.5 rounded-lg">
+              <Bot className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">Lexi AI</h3>
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                <span className="text-[10px] text-slate-500 font-medium">Online</span>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSaveChat} className="text-xs h-8 gap-2 bg-slate-50 hover:bg-slate-100">
-              <Download className="h-3 w-3" /> Save Chat
-            </Button>
           </div>
+          <Button variant="outline" size="sm" onClick={handleSaveChat} className="text-xs h-8 gap-2 bg-slate-50 hover:bg-slate-100 hidden sm:flex">
+            <Download className="h-3 w-3" /> Save Chat
+          </Button>
+        </div>
 
-          {/* Messages Area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-            {messages.map((message, index) => (
-              <div key={index} className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ${message.role === "assistant" ? "bg-[#1e3a8a]" : "bg-[#10b981]"}`}>
-                  {message.role === "assistant" ? <Bot className="h-5 w-5 text-white" /> : <User className="h-5 w-5 text-white" />}
-                </div>
+        {/* Messages Area */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50">
+          {messages.map((message, index) => (
+            <div key={index} className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ${message.role === "assistant" ? "bg-[#1e3a8a]" : "bg-[#10b981]"}`}>
+                {message.role === "assistant" ? <Bot className="h-5 w-5 text-white" /> : <User className="h-5 w-5 text-white" />}
+              </div>
 
-                <div className="flex flex-col max-w-[90%] md:max-w-[75%] space-y-2">
-                  {/* Standard Text Content (if simple or fallback) */}
-                  {message.content && (
-                    <div className={`rounded-2xl px-5 py-4 shadow-sm ${message.role === "assistant" ? "bg-white border text-slate-800" : "bg-[#1e3a8a] text-white"}`}>
-                      <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                      </div>
+              <div className={`flex flex-col max-w-[90%] md:max-w-[90%] space-y-2 ${message.role === "assistant" ? "w-full" : ""}`}>
+                {/* Standard Text Content (if simple or fallback) */}
+                {message.content && (
+                  <div className={`rounded-2xl px-5 py-4 shadow-sm ${message.role === "assistant" ? "bg-white border text-slate-800" : "bg-[#1e3a8a] text-white"}`}>
+                    <div className="prose prose-sm max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          a: ({ node, ...props }) => (
+                            <a
+                              {...props}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline font-medium"
+                            />
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* STRUCTURED CONTENT */}
-                  {message.type === "structured" && (
-                    <div className="space-y-4 w-full mt-2">
-                      {/* Topic Header */}
-                      {message.topic && (
-                        <div className="flex items-center gap-2 text-[#0F3D3E] font-bold text-lg bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
-                          <Sparkles className="h-5 w-5 text-yellow-600" /> Topic Detected: {message.topic}
-                        </div>
-                      )}
+                {/* STRUCTURED CONTENT */}
+                {message.type === "structured" && (
+                  <div className="space-y-4 w-full mt-2">
+                    {/* Topic Header */}
+                    {message.topic && (
+                      <div className="flex items-center gap-2 text-[#0F3D3E] font-bold text-lg bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                        <Sparkles className="h-5 w-5 text-yellow-600" /> Topic Detected: {message.topic}
+                      </div>
+                    )}
 
-                      {/* Sub Topics Expandable */}
-                      {message.sub_topics && message.sub_topics.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {message.sub_topics.map((sub, i) => (
-                            <div key={i} className="flex flex-col">
-                              <Button
-                                variant={expandedSubTopic === sub.label ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setExpandedSubTopic(expandedSubTopic === sub.label ? null : sub.label)}
-                                className={`rounded-full ${expandedSubTopic === sub.label ? "bg-[#0F3D3E]" : "border-[#0F3D3E] text-[#0F3D3E]"}`}
-                              >
-                                {parsedIcon(sub.label)} {sub.label} {expandedSubTopic === sub.label ? <ChevronUp className="ml-2 h-3 w-3" /> : <ChevronDown className="ml-2 h-3 w-3" />}
-                              </Button>
-                            </div>
-                          ))}
-                          {expandedSubTopic && (
-                            <div className="w-full bg-white p-3 rounded-lg border border-slate-200 text-sm text-slate-700 mt-1 animate-in slide-in-from-top-2">
-                              {message.sub_topics.find(s => s.label === expandedSubTopic)?.detail}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Rights Cards */}
-                      {message.rights_cards && (
-                        <div className="grid gap-3">
-                          <h4 className="font-semibold text-slate-500 text-xs uppercase tracking-wider mt-2">Key Legal Rights</h4>
-                          {message.rights_cards.map((right, idx) => (
-                            <Card
-                              key={idx}
-                              onClick={() => setSelectedRight(right)}
-                              className="cursor-pointer hover:shadow-md transition-all hover:bg-slate-50 border-l-4 border-l-[#0F3D3E]"
+                    {/* Sub Topics Expandable */}
+                    {message.sub_topics && message.sub_topics.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {message.sub_topics.map((sub, i) => (
+                          <div key={i} className="flex flex-col">
+                            <Button
+                              variant={expandedSubTopic === sub.label ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setExpandedSubTopic(expandedSubTopic === sub.label ? null : sub.label)}
+                              className={`rounded-full ${expandedSubTopic === sub.label ? "bg-[#0F3D3E]" : "border-[#0F3D3E] text-[#0F3D3E]"}`}
                             >
-                              <CardContent className="p-4 flex justify-between items-center">
-                                <div>
-                                  <h5 className="font-bold text-[#0F3D3E]">{right.title}</h5>
-                                  <p className="text-sm text-slate-600 line-clamp-2">{right.summary}</p>
-                                </div>
-                                <Button variant="ghost" size="icon"><ChevronDown className="-rotate-90 h-4 w-4 text-slate-400" /></Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
+                              {parsedIcon(sub.label)} {sub.label} {expandedSubTopic === sub.label ? <ChevronUp className="ml-2 h-3 w-3" /> : <ChevronDown className="ml-2 h-3 w-3" />}
+                            </Button>
+                          </div>
+                        ))}
+                        {expandedSubTopic && (
+                          <div className="w-full bg-white p-3 rounded-lg border border-slate-200 text-sm text-slate-700 mt-1 animate-in slide-in-from-top-2">
+                            {message.sub_topics.find(s => s.label === expandedSubTopic)?.detail}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                      {/* Emotional Tone */}
-                      {message.emotional_tone && (
-                        <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 px-4 py-3 rounded-xl flex items-start gap-3 text-sm">
-                          <div className="mt-0.5">💛</div>
-                          <p>{message.emotional_tone}</p>
-                        </div>
-                      )}
-                      {/* ANALYSIS RESULT RENDERER */}
-                      {message.analysis && (
-                        <div className="mt-4 animate-in fade-in slide-in-from-bottom-2">
-                          <Card className="border-l-4 border-l-red-500 bg-red-50/50 overflow-hidden shadow-none">
-                            <CardHeader className="pb-2 p-3">
-                              <CardTitle className="text-base text-red-900 flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4 text-red-600" /> Risk Assessment
-                              </CardTitle>
-                              <CardDescription className="text-red-800 text-xs font-medium">
-                                Category: {message.analysis.category}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 p-3 pt-0">
-                              {/* RISKS */}
+                    {/* Rights Cards */}
+                    {message.rights_cards && (
+                      <div className="grid gap-3">
+                        <h4 className="font-semibold text-slate-500 text-xs uppercase tracking-wider mt-2">Key Legal Rights</h4>
+                        {message.rights_cards.map((right, idx) => (
+                          <Card
+                            key={idx}
+                            onClick={() => setSelectedRight(right)}
+                            className="cursor-pointer hover:shadow-md transition-all hover:bg-slate-50 border-l-4 border-l-[#0F3D3E]"
+                          >
+                            <CardContent className="p-4 flex justify-between items-center">
                               <div>
-                                <h4 className="font-bold text-red-900 text-xs uppercase tracking-wide mb-1">⚠️ Potential Risks</h4>
-                                <ul className="space-y-1">
-                                  {message.analysis.risks.map((risk, idx) => (
-                                    <li key={idx} className="flex gap-2 text-xs text-red-800 bg-red-100 p-1.5 rounded border border-red-200">
-                                      <span>•</span> {risk}
-                                    </li>
-                                  ))}
-                                  {message.analysis.risks.length === 0 && <p className="text-xs text-green-700 italic">No major risks detected.</p>}
-                                </ul>
+                                <h5 className="font-bold text-[#0F3D3E]">{right.title}</h5>
+                                <p className="text-sm text-slate-600 line-clamp-2">{right.summary}</p>
                               </div>
-
-                              {/* SUMMARY */}
-                              <div className="bg-white p-2 rounded border border-slate-200">
-                                <h4 className="font-bold text-slate-700 text-[10px] uppercase mb-1">Summary</h4>
-                                <p className="text-xs text-slate-600">{message.analysis.summary}</p>
-                              </div>
-
-                              {/* KEY CLAUSES */}
-                              <div>
-                                <h4 className="font-bold text-slate-700 text-[10px] uppercase mb-1">Key Clauses</h4>
-                                <div className="flex flex-wrap gap-1">
-                                  {message.analysis.clauses.map((clause, cIdx) => (
-                                    <Badge key={cIdx} variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-300 text-[10px] h-auto py-0.5">
-                                      {clause}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* ACTIONS */}
-                              {message.analysis.lawyer_recommended && (
-                                <div className="flex items-center gap-2 text-xs font-bold text-blue-800 bg-blue-100 p-2 rounded justify-center">
-                                  <Briefcase className="h-3 w-3" /> Lawyer Consultation Recommended
-                                </div>
-                              )}
+                              <Button variant="ghost" size="icon"><ChevronDown className="-rotate-90 h-4 w-4 text-slate-400" /></Button>
                             </CardContent>
                           </Card>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Emotional Tone */}
+                    {message.emotional_tone && (
+                      <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 px-4 py-3 rounded-xl flex items-start gap-3 text-sm">
+                        <div className="mt-0.5">💛</div>
+                        <p>{message.emotional_tone}</p>
+                      </div>
+                    )}
+                    {/* ANALYSIS RESULT RENDERER */}
+                    {message.analysis && (
+                      <div className="mt-4 animate-in fade-in slide-in-from-bottom-2">
+                        <Card className="border-l-4 border-l-red-500 bg-red-50/50 overflow-hidden shadow-none">
+                          <CardHeader className="pb-2 p-3">
+                            <CardTitle className="text-base text-red-900 flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-red-600" /> Risk Assessment
+                            </CardTitle>
+                            <CardDescription className="text-red-800 text-xs font-medium">
+                              Category: {message.analysis.category}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3 p-3 pt-0">
+                            {/* RISKS */}
+                            <div>
+                              <h4 className="font-bold text-red-900 text-xs uppercase tracking-wide mb-1">⚠️ Potential Risks</h4>
+                              <ul className="space-y-1">
+                                {message.analysis.risks.map((risk, idx) => (
+                                  <li key={idx} className="flex gap-2 text-xs text-red-800 bg-red-100 p-1.5 rounded border border-red-200">
+                                    <span>•</span> {risk}
+                                  </li>
+                                ))}
+                                {message.analysis.risks.length === 0 && <p className="text-xs text-green-700 italic">No major risks detected.</p>}
+                              </ul>
+                            </div>
+
+                            {/* SUMMARY */}
+                            <div className="bg-white p-2 rounded border border-slate-200">
+                              <h4 className="font-bold text-slate-700 text-[10px] uppercase mb-1">Summary</h4>
+                              <p className="text-xs text-slate-600">{message.analysis.summary}</p>
+                            </div>
+
+                            {/* KEY CLAUSES */}
+                            <div>
+                              <h4 className="font-bold text-slate-700 text-[10px] uppercase mb-1">Key Clauses</h4>
+                              <div className="flex flex-wrap gap-1">
+                                {message.analysis.clauses.map((clause, cIdx) => (
+                                  <Badge key={cIdx} variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-300 text-[10px] h-auto py-0.5">
+                                    {clause}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* ACTIONS */}
+                            {message.analysis.lawyer_recommended && (
+                              <div className="flex items-center gap-2 text-xs font-bold text-blue-800 bg-blue-100 p-2 rounded justify-center">
+                                <Briefcase className="h-3 w-3" /> Lawyer Consultation Recommended
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            ))}
-
-
-            {isLoading && (
-              <div className="flex gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-white"><Bot className="h-5 w-5 animate-pulse" /></div>
-                <div className="bg-white border rounded-2xl px-5 py-4 flex items-center gap-2">
-                  <span className="animate-pulse">Analyzing legal database...</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t p-4 bg-white z-10">
-            {/* Quick Prompts */}
-            {messages.length === 1 && (
-              <div className="flex flex-wrap gap-2 mb-4 justify-center">
-                {quickPrompts.map((prompt) => (
-                  <Button key={prompt} variant="outline" size="sm" onClick={() => handleSendMessage(prompt)} className="rounded-full text-xs bg-slate-50 hover:bg-slate-100">
-                    {prompt}
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-2 items-center max-w-4xl mx-auto w-full">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".txt,.pdf,.jpg,.jpeg,.png"
-                className="hidden"
-              />
-              <Button variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-5 w-5 text-slate-500" />
-              </Button>
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSendMessage()}
-                placeholder="Ask a legal question..."
-                className="flex-1 rounded-full border-slate-300 focus-visible:ring-[#0F3D3E]"
-              />
-              <Button onClick={() => handleSendMessage()} disabled={isLoading} className="rounded-full h-10 w-10 p-0 bg-[#0F3D3E] hover:bg-[#0F3D3E]/90">
-                <Send className="h-4 w-4 text-white" />
-              </Button>
             </div>
+          ))}
+
+
+          {isLoading && (
+            <div className="flex gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-white"><Bot className="h-5 w-5 animate-pulse" /></div>
+              <div className="bg-white border rounded-2xl px-5 py-4 flex items-center gap-2">
+                <span className="animate-pulse">
+                  {isAnalyzingDoc ? "Reading document & consulting legal database (approx 15-20s)..." : "Consulting legal database..."}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="border-t p-4 bg-white z-10 shrink-0">
+          {/* Quick Prompts */}
+          {messages.length === 1 && (
+            <div className="flex flex-wrap gap-2 mb-4 justify-center">
+              {quickPrompts.map((prompt) => (
+                <Button key={prompt} variant="outline" size="sm" onClick={() => handleSendMessage(prompt)} className="rounded-full text-xs bg-slate-50 hover:bg-slate-100">
+                  {prompt}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2 items-center max-w-4xl mx-auto w-full">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".txt,.pdf,.jpg,.jpeg,.png"
+              className="hidden"
+            />
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-5 w-5 text-slate-500" />
+            </Button>
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSendMessage()}
+              placeholder="Ask a legal question..."
+              className="flex-1 rounded-full border-slate-300 focus-visible:ring-[#0F3D3E]"
+            />
+            <Button onClick={() => handleSendMessage()} disabled={isLoading} className="rounded-full h-10 w-10 p-0 bg-[#0F3D3E] hover:bg-[#0F3D3E]/90">
+              <Send className="h-4 w-4 text-white" />
+            </Button>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Detailed Right View Dialog */}
@@ -511,7 +673,7 @@ export default function AIChatSection() {
           onClose={() => setSelectedRight(null)}
         />
       )}
-    </section>
+    </div>
   )
 }
 

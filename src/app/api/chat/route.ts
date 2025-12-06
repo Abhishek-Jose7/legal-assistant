@@ -241,7 +241,9 @@ export async function POST(req: Request) {
             summary: r.summary,
             full_details: {
               what_it_means: r.summary,
-              when_applicable: ["As per Indian Law"],
+              when_applicable: r.law_links && r.law_links.length > 0
+                ? r.law_links.map((l: any) => `${l.act} (Section ${l.section})`)
+                : ["As per Indian Law"],
               requirements: r.tags.map(t => ({ item: t, example: "Relevant context" })),
               steps: r.actions,
               timeframe: "Varies",

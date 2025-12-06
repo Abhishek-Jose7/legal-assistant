@@ -10,6 +10,7 @@ export interface LegalRight {
     summary: string;
     actions: string[];
     tags: string[];
+    law_links: any[];
 }
 
 export const loadLegalData = (): LegalRight[] => {
@@ -39,7 +40,8 @@ export const loadLegalData = (): LegalRight[] => {
                     category: r.category,
                     summary: r.short_summary || r.right_summary || r.explanation || "No summary available.",
                     actions: r.actions_if_violated || r.user_actions || [],
-                    tags: r.tags || []
+                    tags: r.tags || [],
+                    law_links: r.law_links || []
                 }));
 
                 allRights = [...allRights, ...normalized];

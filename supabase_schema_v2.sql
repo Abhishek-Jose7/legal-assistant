@@ -48,3 +48,20 @@ create table documents (
   extracted_text text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- CHAT HISTORY TABLES
+create table if not exists chat_sessions (
+  id uuid default gen_random_uuid() primary key,
+  user_id text not null, -- Clerk ID
+  title text default 'New Chat',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create table if not exists chat_messages (
+  id uuid default gen_random_uuid() primary key,
+  session_id uuid references chat_sessions(id) on delete cascade not null,
+  role text not null, -- 'user' or 'assistant'
+  content text,
+  meta_data jsonb, -- For structured responses
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
