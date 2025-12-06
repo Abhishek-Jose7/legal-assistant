@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import Groq from "groq-sdk";
-const pdf = require('pdf-parse');
 
 // Initialize Groq
 const groq = new Groq({
@@ -18,15 +17,14 @@ export async function POST(req: Request) {
 
         // 1. Extract Text
         let extractedText = "";
+
+        // PDF parsing temporarily disabled to fix Vercel/Next.js build binary issues
         if (file.type === "application/pdf") {
-            const arrayBuffer = await file.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const data = await pdf(buffer);
-            extractedText = data.text;
+            return NextResponse.json({ error: "PDF analysis is currently unavailable. Please copy the text into a .txt file and upload it." }, { status: 400 });
         } else if (file.type.startsWith("text/")) {
             extractedText = await file.text();
         } else {
-            return NextResponse.json({ error: "Only PDF and Text files supported." }, { status: 400 });
+            return NextResponse.json({ error: "Only .txt files are currently supported." }, { status: 400 });
         }
 
         // 2. Truncate for context window
@@ -69,7 +67,7 @@ export async function POST(req: Request) {
             if (jsonMatch) {
                 analysisData = JSON.parse(jsonMatch[0]);
             } else {
-                analysisData = { summary: "Could not parse analysis.", risks: [] };
+                analysisData = { summary: "Could not parse analysis. Please try again.", risks: [] };
             }
         }
 
