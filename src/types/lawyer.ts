@@ -1,6 +1,30 @@
 // TypeScript types for the lawyer system
 
-export type LawyerCategory = "Labour" | "Property" | "Family" | "Consumer"
+export type LawyerCategory = 
+  | "Labour" 
+  | "Property" 
+  | "Family" 
+  | "Consumer" 
+  | "Criminal" 
+  | "Corporate" 
+  | "Tax" 
+  | "Intellectual Property" 
+  | "Civil Rights" 
+  | "Immigration" 
+  | "Banking" 
+  | "Insurance" 
+  | "Medical" 
+  | "Environmental" 
+  | "Cyber Law" 
+  | "Constitutional" 
+  | "International" 
+  | "Trade" 
+  | "Education" 
+  | "Sports" 
+  | "Entertainment" 
+  | "Transportation" 
+  | "Energy" 
+  | "Public Interest"
 
 export type ResponseTime = "Within 1 hour" | "Within 2 hours" | "Within 4 hours" | "Within 24 hours"
 
