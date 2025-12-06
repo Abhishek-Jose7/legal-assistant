@@ -36,7 +36,7 @@ export default function Header() {
 
   // Define navigation items
   const baseNavItems = [
-    { label: "Ask AI Assistant", href: "/", protected: false },
+    { label: "Ask AI Assistant", href: "/chat", protected: false },
     { label: "Know Your Rights", href: "/rights", protected: true },
     { label: "Templates", href: "/templates", protected: false },
     { label: "Find Lawyer", href: "/lawyers", protected: false }, // Always visible

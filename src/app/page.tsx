@@ -3,7 +3,6 @@
 import Header from "@/components/Header"
 import HeroSection from "@/components/HeroSection"
 import Dashboard from "@/components/Dashboard"
-import AIChatSection from "@/components/AIChatSection"
 import Footer from "@/components/Footer"
 
 export default function Home() {
@@ -13,7 +12,6 @@ export default function Home() {
       <main>
         <HeroSection />
         <Dashboard />
-        <AIChatSection />
       </main>
       <Footer />
     </div>

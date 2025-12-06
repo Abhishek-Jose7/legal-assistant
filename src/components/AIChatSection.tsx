@@ -312,7 +312,7 @@ export default function AIChatSection() {
           </div>
 
           {/* Chat Interface */}
-          <Card className="overflow-hidden border-2 shadow-xl h-[600px] flex flex-col">
+          <Card className="overflow-hidden border-2 shadow-xl min-h-[600px] h-[calc(100vh-250px)] flex flex-col bg-white/80 backdrop-blur-sm border-[#C8AD7F]/40">
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50"
