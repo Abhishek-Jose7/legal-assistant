@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import pdf from 'pdf-parse';
+import Groq from "groq-sdk";
+const pdf = require('pdf-parse');
 
-// Use same key rotation as chat
-const keys = [
-    process.env.GROQ_API_KEY,
-
-].filter(Boolean);
+// Initialize Groq
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+});
 
 export async function POST(req: Request) {
     try {
@@ -34,13 +33,6 @@ export async function POST(req: Request) {
         const textContext = extractedText.slice(0, 30000);
 
         // 3. AI Analysis
-        const randomKey = keys[Math.floor(Math.random() * keys.length)];
-        const genAI = new GoogleGenerativeAI(randomKey || "");
-        const model = genAI.getGenerativeModel({
-            model: "gemini-pro",
-            generationConfig: { responseMimeType: "application/json" }
-        });
-
         const prompt = `
     You are an expert legal AI. Analyze the following legal document content:
     "${textContext}"
@@ -53,20 +45,32 @@ export async function POST(req: Request) {
       "risks": ["Risk 1", "Risk 2"],
       "actions": ["Action 1", "Action 2"],
       "rights": ["Right 1", "Right 2"],
-      "lawyer_recommended": true (boolean)
+      "lawyer_recommended": true
     }
     `;
 
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const text = response.text();
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a legal document analyzer. Return only valid JSON." },
+                { role: "user", content: prompt }
+            ],
+            model: "llama3-70b-8192",
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+        });
+
+        const text = completion.choices[0]?.message?.content || "{}";
 
         let analysisData;
         try {
             analysisData = JSON.parse(text);
         } catch (e) {
-            // Fallback or regex repair if needed, but responseMimeType usually forces JSON
-            analysisData = { summary: "Could not parse analysis.", risks: [] };
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                analysisData = JSON.parse(jsonMatch[0]);
+            } else {
+                analysisData = { summary: "Could not parse analysis.", risks: [] };
+            }
         }
 
         return NextResponse.json({
