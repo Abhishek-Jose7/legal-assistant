@@ -1,5 +1,7 @@
 "use client"
 
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { BookOpen, Scale, FileText, ArrowRight, Users, Shield, Smartphone, MessageSquare, Newspaper, Gavel, Star, Clock } from "lucide-react"
 import Link from "next/link"
@@ -45,22 +47,35 @@ export default function Dashboard() {
         }
     ];
 
-    const legalNews = [
-        {
-            title: "Data Privacy Bill Passed",
-            summary: "New laws mandate stricter data handling for tech companies.",
-            icon: Newspaper,
-            color: "bg-pink-100 text-pink-600",
-            date: "Today"
-        },
-        {
-            title: "RERA Ruling for Tenants",
-            summary: "Tenants can now claim interest on delayed possession.",
-            icon: Gavel,
-            color: "bg-indigo-100 text-indigo-600",
-            date: "Yesterday"
-        }
-    ];
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [loadingNews, setLoadingNews] = useState(true);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const res = await fetch('/api/news');
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setNewsData(data);
+                }
+            } catch (error) {
+                console.error("Failed to load news", error);
+            } finally {
+                setLoadingNews(false);
+            }
+        };
+        fetchNews();
+    }, []);
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    };
 
     // Main Features for Public/Guest View (from Features.tsx)
     const publicFeatures = [
@@ -160,23 +175,31 @@ export default function Dashboard() {
                             <h3 className="flex items-center gap-2 text-xl font-semibold text-[#0F3D3E] mb-4">
                                 <Newspaper className="h-5 w-5" /> Legal News & Updates
                             </h3>
-                            <Card className="border-2 border-[#C8AD7F]/30 bg-white/60">
-                                <CardContent className="p-0">
-                                    {legalNews.map((news, idx) => (
-                                        <div key={idx} className="p-5 border-b border-gray-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${news.color} font-medium`}>
-                                                    {news.title.split(' ')[0]}
-                                                </span>
-                                                <span className="text-xs text-slate-400">{news.date}</span>
+                            <Card className="border-2 border-[#C8AD7F]/30 bg-white/60 max-h-[600px] overflow-hidden flex flex-col">
+                                <CardContent className="p-0 overflow-y-auto custom-scrollbar">
+                                    {loadingNews ? (
+                                        <div className="p-8 text-center text-slate-500">Loading latest news...</div>
+                                    ) : (
+                                        newsData.slice(0, 5).map((news, idx) => (
+                                            <div key={idx} className="p-5 border-b border-gray-100 last:border-0 hover:bg-slate-50 transition-colors group">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium`}>
+                                                        {news.relevance || "Legal Update"}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400">{formatTime(news.publishedAt)}</span>
+                                                </div>
+                                                <Link href={news.url} target="_blank" className="block group-hover:text-[#0F3D3E] transition-colors">
+                                                    <h4 className="font-bold text-[#2E2E2E] mb-1 text-sm leading-tight">{news.title}</h4>
+                                                </Link>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{news.source}</span>
+                                                </div>
                                             </div>
-                                            <h4 className="font-bold text-[#2E2E2E] mb-1">{news.title}</h4>
-                                            <p className="text-sm text-slate-600 leading-snug">{news.summary}</p>
-                                        </div>
-                                    ))}
-                                    <div className="p-4 text-center">
-                                        <Button variant="ghost" className="text-[#0F3D3E] text-sm w-full">Read More News</Button>
-                                    </div>
+                                        ))
+                                    )}
+                                    {!loadingNews && newsData.length === 0 && (
+                                        <div className="p-8 text-center text-slate-500">No recent updates found.</div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
@@ -194,22 +217,56 @@ export default function Dashboard() {
                                     <Newspaper className="h-6 w-6" /> Trending Legal News
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {legalNews.map((news, idx) => (
-                                    <Card key={idx} className="border-2 border-[#C8AD7F]/30 bg-white/60 hover:shadow-lg transition-all">
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className={`w-10 h-10 rounded-full ${news.color} flex items-center justify-center`}>
-                                                    <news.icon className="h-5 w-5" />
-                                                </div>
-                                                <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded">{news.date}</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[300px]">
+                                {loadingNews ? (
+                                    <div className="col-span-2 text-center py-20 text-slate-500">Loading latest legal updates...</div>
+                                ) : (
+                                    <>
+                                        {newsData.length > 0 ? newsData.slice(0, 4).map((news, idx) => (
+                                            <Card key={idx} className="border-2 border-[#C8AD7F]/30 bg-white/60 hover:shadow-lg transition-all h-full flex flex-col overflow-hidden group">
+                                                {/* Image or Fallback Header */}
+                                                {news.urlToImage ? (
+                                                    <div className="h-48 w-full overflow-hidden relative">
+                                                        <img src={news.urlToImage} alt="News" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                        <div className="absolute top-2 right-2">
+                                                            <span className="text-[10px] font-bold text-[#0F3D3E] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">{formatTime(news.publishedAt)}</span>
+                                                        </div>
+                                                        <div className="absolute top-2 left-2">
+                                                            <span className="text-[10px] font-bold text-white bg-blue-600/90 px-2 py-1 rounded-full shadow-sm">{news.relevance}</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-32 w-full bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center relative">
+                                                        <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm`}>
+                                                            <Newspaper className="h-6 w-6 text-slate-400" />
+                                                        </div>
+                                                        <div className="absolute top-2 right-2">
+                                                            <span className="text-[10px] font-bold text-slate-500 bg-white/50 px-2 py-1 rounded-full">{formatTime(news.publishedAt)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <CardContent className="p-6 flex flex-col flex-1">
+                                                    <Link href={news.url} target="_blank">
+                                                        <h4 className="font-bold text-lg text-[#2E2E2E] mb-2 hover:text-[#0F3D3E] line-clamp-2 leading-tight">{news.title}</h4>
+                                                    </Link>
+                                                    <p className="text-slate-600 mb-4 line-clamp-3 text-sm flex-grow">{news.description}</p>
+                                                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                                                        <span className="text-xs font-bold text-slate-500 truncate max-w-[150px]">{news.source}</span>
+                                                        <Link href={news.url} target="_blank" className="text-sm font-semibold text-[#0F3D3E] hover:underline flex items-center">
+                                                            Read full story <ArrowRight className="h-3 w-3 ml-1" />
+                                                        </Link>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )) : (
+                                            <div className="col-span-2 text-center py-12 bg-white/50 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center">
+                                                <Newspaper className="h-10 w-10 text-slate-300 mb-3" />
+                                                <p className="text-slate-500">No trending legal news available at the moment.</p>
                                             </div>
-                                            <h4 className="font-bold text-lg text-[#2E2E2E] mb-2">{news.title}</h4>
-                                            <p className="text-slate-600 mb-4">{news.summary}</p>
-                                            <Link href="#" className="text-sm font-semibold text-[#0F3D3E] hover:underline">Read full story</Link>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                        )}
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -255,8 +312,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                 )}
-
             </div>
         </section>
     )
 }
+
