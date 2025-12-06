@@ -128,17 +128,6 @@ nextjs-portal {
   display: none !important;
 }
 
-/* Custom cursor - hide default on desktop */
-@media (min-width: 768px) and (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
-  
-  button, a, input, textarea, select, [role="button"] {
-    cursor: none !important;
-  }
-}
-
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;

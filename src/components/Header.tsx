@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabaseClient"
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const scrollPosition = useScrollPosition()
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true) // Always show header
   const { user } = useUser()
   const [userType, setUserType] = useState<string | null>(null)
 
@@ -30,8 +30,8 @@ export default function Header() {
   }, [user])
 
   useEffect(() => {
-    // Show header after scrolling down 200px
-    setIsVisible(scrollPosition > 200)
+    // Always show header (removed scroll threshold)
+    setIsVisible(true)
   }, [scrollPosition])
 
   const baseNavItems = [
@@ -69,13 +69,10 @@ export default function Header() {
   // And I'll remove the Duplicate "Find Lawyer" from base items carefully.
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -100, opacity: 0 }}
-          transition={{ duration: 0.3 }}
+    <motion.header
+      initial={{ y: 0, opacity: 1 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
           className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${scrollPosition > 10
             ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-md border-[#C8AD7F]/30"
             : "bg-[#F5EEDC]/95 backdrop-blur supports-[backdrop-filter]:bg-[#F5EEDC]/80 border-[#C8AD7F]/20"
@@ -223,7 +220,5 @@ export default function Header() {
             </Sheet>
           </div>
         </motion.header>
-      )}
-    </AnimatePresence>
   )
 }

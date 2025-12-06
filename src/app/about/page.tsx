@@ -34,7 +34,7 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen">
             <Header />
-            <main>
+            <main className="pt-16">
                 {/* Hero */}
                 <div className="bg-[#1e3a8a] py-20 text-white">
                     <div className="container mx-auto px-4 md:px-6 text-center">

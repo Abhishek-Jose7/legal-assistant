@@ -18,7 +18,7 @@ export default function LawyersPage() {
     <div className="min-h-screen relative">
       <ScrollBackground images={backgroundImages} />
       <Header />
-      <main className="relative z-10">
+      <main className="relative z-10 pt-16">
         {/* Hero Section */}
         <div className="bg-gradient-to-br from-[#0F3D3E]/80 via-[#0F3D3E]/70 to-[#0F3D3E]/80 py-16 md:py-20 backdrop-blur-sm">
           <div className="container mx-auto px-4 md:px-6 text-center">
