@@ -1,38 +1,48 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, Scale, FileText, ArrowRight } from "lucide-react"
+import { BookOpen, Scale, FileText, ArrowRight, Users } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-
-const features = [
-    {
-        icon: BookOpen,
-        title: "Know Your Rights",
-        description: "Legal laws explained in simple, easy-to-understand language for everyone.",
-        href: "/rights",
-        color: "bg-blue-100 text-blue-600",
-        buttonText: "Read Guides",
-    },
-    {
-        icon: FileText,
-        title: "Legal Templates",
-        description: "Pre-drafted legal documents for rent, contracts, notices, and more.",
-        href: "/templates",
-        color: "bg-emerald-100 text-emerald-600",
-        buttonText: "View Templates",
-    },
-    {
-        icon: Scale,
-        title: "Find a Lawyer",
-        description: "Connect with verified legal experts and book consultations instantly.",
-        href: "/lawyers",
-        color: "bg-purple-100 text-purple-600",
-        buttonText: "Search Lawyers",
-    },
-]
+import { useUser } from "@clerk/nextjs"
 
 export default function Features() {
+    const { isSignedIn } = useUser();
+
+    const features = [
+        isSignedIn ? {
+            icon: BookOpen,
+            title: "Know Your Rights",
+            description: "Legal laws explained in simple, easy-to-understand language for everyone.",
+            href: "/rights",
+            color: "bg-blue-100 text-blue-600",
+            buttonText: "Read Guides",
+        } : {
+            icon: Users,
+            title: "Rights by Category",
+            description: "Quick access to legal protections for Students, Women, Employees, and more.",
+            href: "/personas", // Points to Personas page
+            color: "bg-indigo-100 text-indigo-600",
+            buttonText: "Explore Rights",
+        },
+        {
+            icon: FileText,
+            title: "Legal Templates",
+            description: "Pre-drafted legal documents for rent, contracts, notices, and more.",
+            href: "/templates",
+            color: "bg-emerald-100 text-emerald-600",
+            buttonText: "View Templates",
+        },
+        {
+            icon: Scale,
+            title: "Find a Lawyer",
+            description: "Connect with verified legal experts and book consultations instantly.",
+            href: "/lawyers",
+            color: "bg-purple-100 text-purple-600",
+            buttonText: "Search Lawyers",
+        },
+    ]
+
     return (
         <section className="w-full py-16 md:py-24 bg-[#F5EEDC] relative overflow-hidden">
             {/* Decorative gradient blob */}
