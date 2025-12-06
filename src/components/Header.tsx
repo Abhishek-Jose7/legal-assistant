@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Scale } from "lucide-react"
 import Link from "next/link"
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,7 +15,10 @@ export default function Header() {
     { label: "Know Your Rights", href: "/rights" },
     { label: "Templates", href: "/templates" },
     { label: "Find Lawyer", href: "/lawyers" },
+    { label: "Find Lawyer", href: "/lawyers" },
     { label: "Rights by Category", href: "/personas" },
+    { label: "My Profile", href: "/profile" },
+    { label: "For Lawyers", href: "/lawyer/register" },
   ]
 
   return (
@@ -43,12 +47,21 @@ export default function Header() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" className="text-slate-700">
-            Login
-          </Button>
-          <Button className="bg-[#10b981] hover:bg-[#059669] text-white">
-            Sign Up
-          </Button>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button variant="ghost" className="text-slate-700">
+                Login
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button className="bg-[#10b981] hover:bg-[#059669] text-white">
+                Sign Up
+              </Button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
         </div>
 
         {/* Mobile Menu */}
@@ -73,12 +86,23 @@ export default function Header() {
                 ))}
               </nav>
               <div className="flex flex-col gap-2 mt-4 px-4">
-                <Button variant="outline" className="w-full">
-                  Login
-                </Button>
-                <Button className="w-full bg-[#10b981] hover:bg-[#059669]">
-                  Sign Up
-                </Button>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="outline" className="w-full">
+                      Login
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button className="w-full bg-[#10b981] hover:bg-[#059669]">
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex justify-center py-2">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
               </div>
             </div>
           </SheetContent>

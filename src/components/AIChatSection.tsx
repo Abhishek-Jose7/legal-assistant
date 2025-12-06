@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
+import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -39,6 +41,9 @@ interface Message {
 }
 
 export default function AIChatSection() {
+  const { user } = useUser()
+  const [userProfile, setUserProfile] = useState<any>(null)
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -48,6 +53,18 @@ export default function AIChatSection() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch Profile if Logged In
+  useEffect(() => {
+    if (user?.id) {
+      const fetchPro = async () => {
+        const { data } = await supabase.from('profiles').select('*').eq('clerk_id', user.id).single()
+        if (data) setUserProfile(data)
+      }
+      fetchPro()
+    }
+  }, [user])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -79,7 +96,8 @@ export default function AIChatSection() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
-          history: conversationHistory
+          history: conversationHistory,
+          userProfile: userProfile
         }),
       })
 
@@ -103,6 +121,49 @@ export default function AIChatSection() {
       ])
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // File Upload Handling
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setMessages(prev => [...prev, {
+      role: "user",
+      content: `Uploaded document: ${file.name}`
+    }])
+    setIsLoading(true)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/analyze-document', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: `**Document Analysis for ${file.name}:**\n\n${data.summary}`,
+        action: "NONE"
+      }])
+
+    } catch (error) {
+      console.error(error)
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "I'm sorry, I couldn't process that file. Please ensure it's a valid PDF or text document."
+      }])
+    } finally {
+      setIsLoading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
     }
   }
 
@@ -215,8 +276,8 @@ export default function AIChatSection() {
                 >
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ${message.role === "assistant"
-                        ? "bg-[#1e3a8a]"
-                        : "bg-[#10b981]"
+                      ? "bg-[#1e3a8a]"
+                      : "bg-[#10b981]"
                       }`}
                   >
                     {message.role === "assistant" ? (
@@ -228,8 +289,8 @@ export default function AIChatSection() {
                   <div className={`flex flex-col max-w-[85%]`}>
                     <div
                       className={`rounded-2xl px-5 py-4 shadow-sm ${message.role === "assistant"
-                          ? "bg-white border text-slate-800"
-                          : "bg-[#1e3a8a] text-white"
+                        ? "bg-white border text-slate-800"
+                        : "bg-[#1e3a8a] text-white"
                         }`}
                     >
                       <div className={`text-sm leading-relaxed prose ${message.role === 'assistant' ? 'prose-slate' : 'prose-invert'} max-w-none`}>
@@ -260,7 +321,21 @@ export default function AIChatSection() {
             {/* Input Area */}
             <div className="border-t p-4 bg-white">
               <div className="flex gap-2">
-                <Button variant="outline" size="icon" className="shrink-0" title="Upload document">
+                <input
+                  type="file"
+                  accept=".pdf,.txt"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  title="Upload document (PDF/Text)"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
                   <Upload className="h-4 w-4" />
                 </Button>
                 <Input

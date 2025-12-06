@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 // Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// Initialize Gemini inside handler for key rotation
 
 const systemPrompt = `
 You are Lexi, an expert AI legal assistant for Indian Law. Your goal is to help users understand their rights, draft legal documents, and find lawyers. 
@@ -57,49 +57,99 @@ Structure the JSON as follows:
 `;
 
 export async function POST(req: Request) {
-    try {
-        const { history, message } = await req.json();
+  try {
+    const { history, message, userId, userProfile } = await req.json();
 
-        // Contextual history for the chat model
-        // Convert frontend message format to Gemini format if needed, 
-        // but for simple turn-based, we'll just append simple history string or use chat session.
+    // Fetch User Profile Context if available
+    let userContext = "";
+    if (userId) {
+      // We can't use the client-side supabase client here easily without auth context in server, 
+      // but for this demo using the ANON key for public read or service role if needed.
+      // Since 'profiles' likely has RLS, we'd ideally need a Service Role key or pass the user's token.
+      // For this hackathon/demo scope with provided keys, we'll try to fetch assuming public read or simple RLS.
+      // Actually, standard practice: Client passes relevant context or we skip RLS for this specific read if allowed.
+      // Let's assume we can fetch by clerk_id.
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            generationConfig: { responseMimeType: "application/json" }
-        });
-
-        const chat = model.startChat({
-            history: [
-                {
-                    role: "user",
-                    parts: [{ text: systemPrompt }],
-                },
-                {
-                    role: "model",
-                    parts: [{ text: "{\"message\": \"Understood. I am Lexi, ready to assist with Indian Law in JSON format.\", \"action\": \"NONE\"}" }],
-                },
-                ...history.map((msg: any) => ({
-                    role: msg.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: msg.content }] // simplistic history mapping
-                }))
-            ],
-        });
-
-        const result = await chat.sendMessage(message);
-        const response = result.response;
-        const text = response.text();
-
-        return NextResponse.json(JSON.parse(text));
-
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        return NextResponse.json(
-            {
-                message: "I'm experiencing high traffic right now. Please try again in a moment.",
-                error: String(error)
-            },
-            { status: 500 }
-        );
+      // We'll proceed without complex server-side auth for now to avoid breaking changes, 
+      // but ideally we'd pass this data from frontend.
+      // To make it robust: Frontend should send the profile data in the request body if loaded.
+      // Changing strategy: We will expect `userProfile` in the request body.
     }
+
+    // Actually, let's inject a "User Info" section into the system prompt if passed.
+    // Actually, let's inject a "User Info" section into the system prompt if passed.
+    // userProfile is destructured above.
+
+
+    let personalizedPrompt = systemPrompt;
+    if (userProfile) {
+      personalizedPrompt += `
+        
+**USER CONTEXT:**
+The user is ${userProfile.full_name}, a ${userProfile.user_type} based in ${userProfile.address}.
+Tailor your legal advice specifically for a ${userProfile.user_type}.
+        `
+    }
+
+    // Load Balancing Strategy: Randomly select one of the available keys
+    const keys = [
+      process.env.GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_SECONDARY
+    ].filter(Boolean);
+
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    const genAI = new GoogleGenerativeAI(randomKey || "");
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-pro", // Using gemini-pro for stability
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [{ text: systemPrompt }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "{\"message\": \"Understood. I am Lexi, ready to assist with Indian Law in JSON format.\", \"action\": \"NONE\"}" }],
+        },
+        ...history.map((msg: any) => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }]
+        }))
+      ],
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = result.response;
+    const text = response.text();
+
+    // Robust parsing
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(text);
+    } catch (e) {
+      // Fallback if model returns Markdown block
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResponse = JSON.parse(jsonMatch[0]);
+      } else {
+        parsedResponse = { message: text, action: "NONE" };
+      }
+    }
+
+    return NextResponse.json(parsedResponse);
+
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    return NextResponse.json(
+      {
+        message: "I'm experiencing high traffic right now. Please try again in a moment.",
+        error: String(error)
+      },
+      { status: 500 }
+    );
+  }
 }
