@@ -80,9 +80,9 @@ export default function Header() {
       initial={{ y: 0, opacity: 1 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${scrollPosition > 10
-        ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-md border-[#C8AD7F]/30"
-        : "bg-[#F5EEDC]/95 backdrop-blur supports-[backdrop-filter]:bg-[#F5EEDC]/80 border-[#C8AD7F]/20"
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl rounded-full border transition-all duration-300 ${scrollPosition > 10
+        ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-xl border-[#C8AD7F]/40"
+        : "bg-[#F5EEDC]/90 backdrop-blur-sm border-[#C8AD7F]/20 shadow-lg"
         }`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">

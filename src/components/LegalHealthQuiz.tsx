@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ShieldCheck, AlertTriangle, FileText, CheckCircle2, ChevronRight, RefreshCcw, ShoppingCart, Briefcase, Users2 } from "lucide-react"
+import { useUser } from "@clerk/nextjs"
+import { supabase } from "@/lib/supabaseClient"
 
 const quizData: Record<string, any[]> = {
     "general": [
@@ -204,10 +206,41 @@ const topics = [
 ]
 
 export default function LegalHealthQuiz() {
+    const { user } = useUser()
+    const [userType, setUserType] = useState<string | null>(null)
     const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
     const [currentStep, setCurrentStep] = useState(0)
     const [score, setScore] = useState(0)
     const [showResults, setShowResults] = useState(false)
+
+    // Fetch user type
+    useEffect(() => {
+        if (user) {
+            const fetchType = async () => {
+                const { data } = await supabase.from('profiles').select('user_type').eq('clerk_id', user.id).single()
+                if (data) setUserType(data.user_type)
+            }
+            fetchType()
+        }
+    }, [user])
+
+    // Sort Topics Logic
+    const sortedTopics = [...topics].sort((a, b) => {
+        if (a.id === 'general') return -1;
+        if (b.id === 'general') return 1;
+
+        if (!userType) return 0;
+
+        let relevant = '';
+        if (userType === 'Tenant') relevant = 'tenant';
+        if (userType === 'Employee') relevant = 'workplace';
+        if (userType === 'Business Owner') relevant = 'workplace';
+        if (userType === 'Student') relevant = 'consumer';
+
+        if (a.id === relevant) return -1;
+        if (b.id === relevant) return 1;
+        return 0;
+    });
 
     // Current Questions based on topic
     const currentQuestions = selectedTopic ? quizData[selectedTopic] : []
@@ -262,7 +295,7 @@ export default function LegalHealthQuiz() {
             {/* TOPIC SELECTION GRID */}
             {!selectedTopic && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4">
-                    {topics.map((t) => (
+                    {sortedTopics.map((t) => (
                         <Card
                             key={t.id}
                             onClick={() => {

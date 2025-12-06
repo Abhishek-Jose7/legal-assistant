@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useUser } from "@clerk/nextjs"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardInput, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -51,6 +51,16 @@ interface Message {
     actions: string[];
     lawyer_recommended: boolean;
   }
+}
+
+// Icon helper
+const parsedIcon = (label: string) => {
+  const l = label.toLowerCase();
+  if (l.includes("law") || l.includes("understand")) return "⚖️";
+  if (l.includes("document") || l.includes("form")) return "🧾";
+  if (l.includes("process") || l.includes("step")) return "🪜";
+  if (l.includes("money") || l.includes("cost") || l.includes("fee")) return "💰";
+  return "📌";
 }
 
 // Sub-component for rendering the detailed Key Right view
@@ -143,10 +153,10 @@ const RightDetailView = ({ right, isOpen, onClose }: { right: any, isOpen: boole
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button asChild className="flex-1 bg-[#0F3D3E] hover:bg-[#0F3D3E]/90">
-              <Link href="/templates">View Templates</Link>
+              <a href="/templates">View Templates</a>
             </Button>
             <Button asChild variant="outline" className="flex-1 border-[#0F3D3E] text-[#0F3D3E]">
-              <Link href="/lawyers">Find Lawyer</Link>
+              <a href="/lawyers">Find Lawyer</a>
             </Button>
           </div>
         </div>
@@ -157,6 +167,7 @@ const RightDetailView = ({ right, isOpen, onClose }: { right: any, isOpen: boole
 
 export default function AIChatSection() {
   const { user } = useUser()
+  const { openSignIn } = useClerk()
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -315,6 +326,12 @@ export default function AIChatSection() {
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Restriction: Must be logged in
+    if (!user) {
+      openSignIn();
+      return;
+    }
+
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -675,14 +692,4 @@ export default function AIChatSection() {
       )}
     </div>
   )
-}
-
-// Icon helper
-const parsedIcon = (label: string) => {
-  const l = label.toLowerCase();
-  if (l.includes("law") || l.includes("understand")) return "⚖️";
-  if (l.includes("document") || l.includes("form")) return "🧾";
-  if (l.includes("process") || l.includes("step")) return "🪜";
-  if (l.includes("money") || l.includes("cost") || l.includes("fee")) return "💰";
-  return "📌";
 }
