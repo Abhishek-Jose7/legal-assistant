@@ -1,113 +1,190 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Scale } from "lucide-react"
+import { Menu, Scale, X } from "lucide-react"
 import Link from "next/link"
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs"
+import { motion, AnimatePresence } from "framer-motion"
+import { useScrollPosition } from "@/hooks/useAnimation"
+import AnimatedButton from "@/components/animations/AnimatedButton"
+import { staggerContainer, staggerItem } from "@/components/animations/variants"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const scrollPosition = useScrollPosition()
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    // Show header after scrolling down 200px
+    setIsVisible(scrollPosition > 200)
+  }, [scrollPosition])
 
   const navItems = [
     { label: "Ask AI Assistant", href: "/" },
     { label: "Know Your Rights", href: "/rights" },
     { label: "Templates", href: "/templates" },
     { label: "Find Lawyer", href: "/lawyers" },
-    { label: "Find Lawyer", href: "/lawyers" },
     { label: "Rights by Category", href: "/personas" },
-    { label: "My Profile", href: "/profile" },
-    { label: "For Lawyers", href: "/lawyer/register" },
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-semibold text-xl">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e3a8a]">
-            <Scale className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-[#1e3a8a]">Lexi.AI</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-[#1e3a8a] transition-colors rounded-md hover:bg-slate-50"
-            >
-              {item.label}
+    <AnimatePresence>
+      {isVisible && (
+        <motion.header
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
+            scrollPosition > 10
+              ? "bg-[#F5EEDC]/95 backdrop-blur-md shadow-md border-[#C8AD7F]/30"
+              : "bg-[#F5EEDC]/95 backdrop-blur supports-[backdrop-filter]:bg-[#F5EEDC]/80 border-[#C8AD7F]/20"
+          }`}
+        >
+          <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 font-semibold text-xl">
+              <motion.div
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0F3D3E]"
+                whileHover={{ rotate: 180, scale: 1.1 }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <Scale className="h-5 w-5 text-[#F5EEDC]" />
+              </motion.div>
+              <motion.span
+                className="text-[#0F3D3E]"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                Lexi.AI
+              </motion.span>
             </Link>
-          ))}
-        </nav>
 
-        {/* Desktop Auth Buttons */}
-        <div className="hidden md:flex items-center gap-3">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button variant="ghost" className="text-slate-700">
-                Login
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button className="bg-[#10b981] hover:bg-[#059669] text-white">
-                Sign Up
-              </Button>
-            </SignUpButton>
-          </SignedOut>
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-        </div>
-
-        {/* Mobile Menu */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] sm:w-[350px]">
-            <div className="flex flex-col gap-4 mt-8">
-              <nav className="flex flex-col gap-2">
-                {navItems.map((item) => (
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item, index) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.05 }}
+                >
                   <Link
-                    key={item.label}
                     href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className="px-4 py-3 text-base font-medium text-slate-700 hover:text-[#1e3a8a] hover:bg-slate-50 rounded-lg transition-colors"
+                    className="relative px-3 py-2 text-sm font-medium text-[#2E2E2E] hover:text-[#0F3D3E] transition-colors rounded-md hover:bg-[#C8AD7F]/20 group"
                   >
                     {item.label}
+                    <motion.div
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C8AD7F] scale-x-0 group-hover:scale-x-100"
+                      transition={{ duration: 0.2 }}
+                    />
                   </Link>
-                ))}
-              </nav>
-              <div className="flex flex-col gap-2 mt-4 px-4">
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <Button variant="outline" className="w-full">
+                </motion.div>
+              ))}
+            </nav>
+
+            {/* Desktop Auth Buttons */}
+            <motion.div
+              className="hidden md:flex items-center gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <AnimatedButton
+                variant="ghost"
+                className="text-[#2E2E2E]"
+                showRipple={true}
+                rippleColor="rgba(15, 61, 62, 0.2)"
+              >
+                Login
+              </AnimatedButton>
+              <AnimatedButton
+                className="bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC]"
+                showRipple={true}
+                rippleColor="rgba(245, 238, 220, 0.6)"
+              >
+                Sign Up
+              </AnimatedButton>
+            </motion.div>
+
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <motion.div whileTap={{ scale: 0.95 }}>
+                  <Button variant="ghost" size="icon" className="text-[#2E2E2E]">
+                    <AnimatePresence mode="wait">
+                      {isOpen ? (
+                        <motion.div
+                          key="close"
+                          initial={{ rotate: -90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: 90, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <X className="h-6 w-6" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="menu"
+                          initial={{ rotate: 90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: -90, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Menu className="h-6 w-6" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </motion.div>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[350px] bg-[#F5EEDC] border-[#C8AD7F]">
+                <motion.div
+                  initial={{ x: 300, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex flex-col gap-4 mt-8"
+                >
+                  <motion.nav
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-col gap-2"
+                  >
+                    {navItems.map((item, index) => (
+                      <motion.div key={item.label} variants={staggerItem}>
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className="px-4 py-3 text-base font-medium text-[#2E2E2E] hover:text-[#0F3D3E] hover:bg-[#C8AD7F]/20 rounded-lg transition-colors block"
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </motion.nav>
+                  <div className="flex flex-col gap-2 mt-4 px-4">
+                    <AnimatedButton variant="outline" className="w-full border-[#C8AD7F] text-[#2E2E2E]" showRipple={true}>
                       Login
-                    </Button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <Button className="w-full bg-[#10b981] hover:bg-[#059669]">
+                    </AnimatedButton>
+                    <AnimatedButton
+                      className="w-full bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC]"
+                      showRipple={true}
+                      rippleColor="rgba(245, 238, 220, 0.6)"
+                    >
                       Sign Up
-                    </Button>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  <div className="flex justify-center py-2">
-                    <UserButton afterSignOutUrl="/" />
+                    </AnimatedButton>
                   </div>
-                </SignedIn>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-    </header>
+                </motion.div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </motion.header>
+      )}
+    </AnimatePresence>
   )
 }

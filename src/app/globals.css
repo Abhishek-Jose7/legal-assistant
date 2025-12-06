@@ -49,27 +49,28 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --card: #ffffff;
-  --card-foreground: #1e293b;
-  --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  --primary: #1e3a8a;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #1e293b;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #1e293b;
+  --background: #F5EEDC;
+  --foreground: #2E2E2E;
+  --card: #F5EEDC;
+  --card-foreground: #2E2E2E;
+  --popover: #F5EEDC;
+  --popover-foreground: #2E2E2E;
+  --primary: #0F3D3E;
+  --primary-foreground: #F5EEDC;
+  --secondary: #F5EEDC;
+  --secondary-foreground: #2E2E2E;
+  --muted: #F5EEDC;
+  --muted-foreground: #2E2E2E;
+  --accent: #C8AD7F;
+  --accent-foreground: #2E2E2E;
   --destructive: #dc2626;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #10b981;
-  --navy: #1e3a8a;
-  --emerald: #10b981;
-  --light-grey: #f8fafc;
+  --border: #C8AD7F;
+  --input: #F5EEDC;
+  --ring: #0F3D3E;
+  --dark-green: #0F3D3E;
+  --cream: #F5EEDC;
+  --charcoal: #2E2E2E;
+  --muted-gold: #C8AD7F;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -125,4 +126,33 @@
 /* Hide Next.js error overlay portal */
 nextjs-portal {
   display: none !important;
+}
+
+/* Custom cursor - hide default on desktop */
+@media (min-width: 768px) and (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+  
+  button, a, input, textarea, select, [role="button"] {
+    cursor: none !important;
+  }
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

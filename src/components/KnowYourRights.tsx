@@ -56,13 +56,13 @@ const rightsCategories = [
 
 export default function KnowYourRights() {
   return (
-    <section id="rights" className="w-full py-16 md:py-20 bg-slate-50">
+    <section id="rights" className="w-full py-16 md:py-20 bg-[#F5EEDC]/95 backdrop-blur-sm relative">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#2E2E2E] mb-4 drop-shadow-md">
             Know Your Rights
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-[#2E2E2E]/80 max-w-2xl mx-auto drop-shadow-sm">
             Explore your legal rights across different areas of law
           </p>
         </div>
