@@ -158,16 +158,17 @@ export default function HeroSection() {
                   damping: 15,
                 }}
               >
-                <AnimatedButton
-                  size="lg"
-                  onClick={scrollToChat}
-                  showRipple={true}
-                  rippleColor="rgba(245, 238, 220, 0.6)"
-                  className="bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] h-12 px-8 text-base rounded-xl shadow-lg hover:shadow-xl relative border-2 border-[#C8AD7F]/30"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Start Legal Chat
-                </AnimatedButton>
+                <Link href="/chat">
+                  <AnimatedButton
+                    size="lg"
+                    showRipple={true}
+                    rippleColor="rgba(245, 238, 220, 0.6)"
+                    className="bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] h-12 px-8 text-base rounded-xl shadow-lg hover:shadow-xl relative border-2 border-[#C8AD7F]/30"
+                  >
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Start Legal Chat
+                  </AnimatedButton>
+                </Link>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

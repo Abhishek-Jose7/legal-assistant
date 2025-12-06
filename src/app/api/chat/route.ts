@@ -139,7 +139,7 @@ export async function POST(req: Request) {
         { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
         { role: "user", content: systemPrompt }
       ],
-      model: "llama3-70b-8192",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
       response_format: { type: "json_object" },
     });
