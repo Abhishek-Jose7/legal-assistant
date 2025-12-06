@@ -79,6 +79,26 @@ export default function LawyerFilters({ filters, onFiltersChange, isLoading = fa
                 <SelectItem value="property">Property Law</SelectItem>
                 <SelectItem value="family">Family Law</SelectItem>
                 <SelectItem value="consumer">Consumer Law</SelectItem>
+                <SelectItem value="criminal">Criminal Law</SelectItem>
+                <SelectItem value="corporate">Corporate Law</SelectItem>
+                <SelectItem value="tax">Tax Law</SelectItem>
+                <SelectItem value="intellectual property">Intellectual Property</SelectItem>
+                <SelectItem value="civil rights">Civil Rights</SelectItem>
+                <SelectItem value="immigration">Immigration Law</SelectItem>
+                <SelectItem value="banking">Banking Law</SelectItem>
+                <SelectItem value="insurance">Insurance Law</SelectItem>
+                <SelectItem value="medical">Medical Law</SelectItem>
+                <SelectItem value="environmental">Environmental Law</SelectItem>
+                <SelectItem value="cyber law">Cyber Law</SelectItem>
+                <SelectItem value="constitutional">Constitutional Law</SelectItem>
+                <SelectItem value="international">International Law</SelectItem>
+                <SelectItem value="trade">Trade Law</SelectItem>
+                <SelectItem value="education">Education Law</SelectItem>
+                <SelectItem value="sports">Sports Law</SelectItem>
+                <SelectItem value="entertainment">Entertainment Law</SelectItem>
+                <SelectItem value="transportation">Transportation Law</SelectItem>
+                <SelectItem value="energy">Energy Law</SelectItem>
+                <SelectItem value="public interest">Public Interest Law</SelectItem>
               </SelectContent>
             </Select>
           </div>
