@@ -133,10 +133,112 @@ export async function POST(req: Request) {
 
     return NextResponse.json(parsedResponseWrapper(parsedData));
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Chat API Error:", error);
+
+    // 1. ATTEMPT OPENROUTER BACKUP
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (openRouterKey) {
+      try {
+        console.log("Attempting OpenRouter Fallback...");
+        const { message } = await req.clone().json().catch(() => ({ message: "" })); // Need clone because body was read
+
+        // Re-construct system prompt locally or just use a simplified one since we can't easily access 'systemPrompt' from try block scope without moving it.
+        // Actually, we can just ask it simply or use the message. The RAG context is lost if we don't reconstruct it.
+        // To do this properly, let's just do a search again to get context, similar to RAG fallback.
+
+        const fallbackRights = searchLegalRights(message);
+        const contextStr = fallbackRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
+
+        const backupPrompt = `
+            You are Lexi, an advanced expert legal AI assistant.
+            The user asked: "${message}"
+            Based on the following known legal rights:
+            ${contextStr}
+            
+            RETURN JSON ONLY.
+            {
+              "type": "structured",
+              "topic": "Detected Legal Topic",
+              "sub_topics": [],
+              "rights_cards": [ { "title": "Right Title", "summary": "Summary", "full_details": { "what_it_means": "...", "when_applicable": [], "requirements": [], "steps": [], "timeframe": "...", "action_buttons": [] } } ],
+              "emotional_tone": "Supportive tone"
+            }
+            If unsure, just fill rights_cards with the provided rights.
+            `;
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openRouterKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+          },
+          body: JSON.stringify({
+            model: "meta-llama/llama-3-8b-instruct:free", // Use free tier or better if available
+            messages: [
+              { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
+              { role: "user", content: backupPrompt }
+            ],
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const content = data.choices[0]?.message?.content || "{}";
+          let parsedData = {};
+          try {
+            parsedData = JSON.parse(content);
+          } catch (e) {
+            return NextResponse.json({ type: "simple", message: content });
+          }
+          return NextResponse.json(parsedResponseWrapper(parsedData));
+        } else {
+          console.error("OpenRouter Error:", await response.text());
+        }
+      } catch (orError) {
+        console.error("OpenRouter Failed:", orError);
+      }
+    }
+
+    // 2. FALLBACK: Use RAG data if AI fails (e.g., Invalid Key, Rate Limit)
+    // We can access 'relevantRights' if we move it to a higher scope or re-calculate it.
+    // Since 'relevantRights' was defined inside the try block, we need to redefine it or move it up.
+    // For safety/cleanliness, let's re-run the fast search here to ensure we have data.
+
+    try {
+      const { message } = await req.json().catch(() => ({ message: "" }));
+      const fallbackRights = searchLegalRights(message);
+
+      if (fallbackRights.length > 0) {
+        console.warn("Falling back to RAG data due to AI error.");
+        return NextResponse.json({
+          type: "structured",
+          topic: "Legal Search Results (Offline Mode)",
+          message: "I'm having trouble connecting to my creative brain right now, but here are the specific legal rights found in my database that match your query:",
+          sub_topics: [],
+          rights_cards: fallbackRights.map(r => ({
+            title: r.title,
+            summary: r.summary,
+            full_details: {
+              what_it_means: r.summary,
+              when_applicable: ["As per Indian Law"],
+              requirements: r.tags.map(t => ({ item: t, example: "Relevant context" })),
+              steps: r.actions,
+              timeframe: "Varies",
+              action_buttons: ["Consult Expert", "View Templates"]
+            }
+          })),
+          emotional_tone: "I hope this information is helpful despite the connection issue."
+        });
+      }
+    } catch (fallbackError) {
+      console.error("Fallback failed:", fallbackError);
+    }
+
     return NextResponse.json(
-      { message: "Sorry, I encountered an error processing your request." },
+      { message: "Sorry, I encountered an error processing your request. Please check your API key or try again later." },
       { status: 500 }
     );
   }
