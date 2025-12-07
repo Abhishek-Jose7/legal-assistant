@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import Tesseract from 'tesseract.js';
-const pdf = require('pdf-parse');
 import Groq from 'groq-sdk';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +34,7 @@ export async function POST(req: Request) {
             else if (file.type === "application/pdf") {
                 // Use PDF-Parse for Text-Based PDFs
                 console.log("Parsing PDF...");
+                const pdf = require('pdf-parse');
                 const data = await pdf(buffer);
                 extractedText = data.text;
                 console.log(`PDF Parsed. Length: ${extractedText.length}`);
