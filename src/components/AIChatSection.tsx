@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
-import { Card, CardInput, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Bot, User, Send, Upload, Sparkles, Briefcase, FileText, ChevronDown, ChevronUp, Scale, Clock, AlertTriangle, CheckCircle2, Download } from "lucide-react"
@@ -270,7 +270,9 @@ export default function AIChatSection() {
         if (newSession) {
           sessionId = newSession.id;
           setCurrentSessionId(newSession.id);
-          setSessions([newSession, ...sessions]); // Update sidebar
+          setSessions((prev) => [newSession, ...prev]); // Update sidebar safely
+        } else if (sessionError) {
+          console.error("Error creating session:", sessionError);
         }
       }
 
@@ -345,7 +347,7 @@ export default function AIChatSection() {
     // Actually, let's create it on upload if we want to save the history.
     let sessionId = currentSessionId;
     if (!sessionId && user) {
-      const { data: newSession } = await supabase
+      const { data: newSession, error: sessionError } = await supabase
         .from('chat_sessions')
         .insert({ user_id: user.id, title: `Doc: ${file.name}` })
         .select()
@@ -353,9 +355,11 @@ export default function AIChatSection() {
       if (newSession) {
         sessionId = newSession.id;
         setCurrentSessionId(newSession.id);
-        setSessions([newSession, ...sessions]);
+        setSessions((prev) => [newSession, ...prev]);
         // Save user msg
         await supabase.from('chat_messages').insert({ session_id: sessionId, role: 'user', content: `Analyzed Document: ${file.name}` });
+      } else if (sessionError) {
+        console.error("Error creating session during upload:", sessionError);
       }
     } else if (sessionId && user) {
       await supabase.from('chat_messages').insert({ session_id: sessionId, role: 'user', content: `Analyzed Document: ${file.name}` });
@@ -424,7 +428,7 @@ export default function AIChatSection() {
   }
 
   return (
-    <div className="flex h-full w-full bg-[#F5EEDC] overflow-hidden">
+    <div className="flex flex-1 w-full bg-[#F5EEDC] overflow-hidden">
       {/* Sidebar - Desktop: always visible, Mobile: conditionally visible */}
       <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-[#C8AD7F]/30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}>
         <div className="p-4 border-b border-[#C8AD7F]/20 flex items-center justify-between">

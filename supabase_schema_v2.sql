@@ -28,7 +28,7 @@ create policy "Lawyer profiles are viewable by everyone."
 
 create policy "Lawyers can update their own profile."
   on lawyer_profiles for update
-  using ( clerk_id = auth.uid() ); 
+  using ( clerk_id = auth.uid()::text ); 
   -- Note: auth.uid() relies on Supabase Auth. Since we use Clerk, we generally handle this logic in API or use a custom claim. 
   -- For this demo, we can perform checks in the application layer or allow public insert/update if we trust the client (not recommended for prod).
   -- Better approach for this demo:
