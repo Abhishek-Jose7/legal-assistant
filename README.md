@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Legal AI - Your Personal AI Legal Assistant
 
-## Getting Started
+Legal AI is a comprehensive web application designed to democratize access to legal information in India. It empowers users with AI-driven legal advice, document analysis, and a structured "Know Your Rights" knowledge base.
 
-First, run the development server:
+## 🚀 Key Features
+
+*   **🤖 AI Legal Assistant**: Chat with an intelligent legal assistant powered by LLMs (Groq/OpenRouter). It understands natural language queries, provides legal context, and suggests relevant lawyers.
+*   **📚 Know Your Rights**: A browseable, searchable library of legal rights categorized by persona (Student, Woman, Employee, Tenant, etc.). Includes actionable steps, required documents, and example scenarios.
+*   **🧠 Legal Health Quiz**: An interactive quiz to assess your legal awareness and get personalized recommendations.
+*   **📄 Document Analysis**: Upload legal documents (PDF/Image) for AI-powered summarization and analysis using OCR (Tesseract.js) and PDF parsing.
+*   **⚖️ Lawyer Directory**: Find and connect with lawyers specializing in various fields (Consumer, Criminal, Family, etc.).
+*   **👤 personalized Dashboard**: Track your learning progress, saved chats, and completed rights modules.
+*   **🔒 Secure Authentication**: Robust user management and authentication via Clerk.
+
+## 🛠️ Tech Stack
+
+*   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+*   **Language**: [TypeScript](https://www.typescriptlang.org/)
+*   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+*   **Authentication**: [Clerk](https://clerk.com/)
+*   **Database**: [Supabase](https://supabase.com/)
+*   **AI/LLM**: [Groq SDK](https://console.groq.com/) & [OpenRouter](https://openrouter.ai/) for high-speed inference.
+*   **OCR/Document Processing**: `tesseract.js`, `pdf-parse`.
+*   **Icons**: [Lucide React](https://lucide.dev/).
+
+## ⚙️ Setup & Installation
+
+### Prerequisites
+
+*   Node.js (v18 or higher)
+*   npm or yarn
+*   A Supabase project
+*   A Clerk application
+*   Groq / OpenRouter API Keys
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd legal-ai
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Environment Variables
+
+Create a `.env.local` file in the root directory and add the following keys:
+
+```env
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+# Supabase Database
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR...
+
+# AI Models
+GROQ_API_KEY=gsk_...
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+### 4. Database Setup
+
+Run the SQL scripts provided in `supabase_schema_v2.sql` in your Supabase SQL Editor to set up the necessary tables (`profiles`, `user_rights_progress`, `chat_sessions`, etc.) and Row Level Security (RLS) policies.
+
+### 5. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+*   `src/app`: Next.js App Router pages and API routes.
+*   `src/components`: Reusable UI components (`KnowYourRights`, `AIChatSection`, `UserProfile`, etc.).
+*   `src/lib`: Utility functions and clients (`supabaseClient`, `legalData`).
+*   `src/data`: Static JSON data for legal rights and mock lawyer data.
 
-## Learn More
+## 🤝 Contributing
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions are welcome! Please feel free to submit a Pull Request.

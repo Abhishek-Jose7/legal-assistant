@@ -289,7 +289,7 @@ export default function LegalHealthQuiz() {
                 <h2 className="text-3xl font-bold text-[#0F3D3E] mb-2 flex items-center justify-center gap-2">
                     <ShieldCheck className="h-8 w-8" /> Legal Assessment
                 </h2>
-                <p className="text-slate-600">Select a category to evaluate your legal preparedness.</p>
+                <p className="text-slate-600">Select a category to evaluate your legal preparedness from our collection of personally curated quizzes.</p>
             </div>
 
             {/* TOPIC SELECTION GRID */}

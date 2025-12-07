@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { loadLegalData } from "@/lib/legalData";
 import { supabase } from "@/lib/supabaseClient";
 import Groq from "groq-sdk";
+import fs from 'fs';
+import path from 'path';
 
 // Initialize Groq
 const groq = new Groq({
@@ -13,6 +15,85 @@ const legalRightsDB = loadLegalData();
 
 // Helper to clean query
 const cleanQuery = (q: string) => q.trim().toLowerCase();
+
+// Simple CSV Parser
+const parseCSV = (csvText: string) => {
+  const lines = csvText.split('\n').filter(l => l.trim());
+  const headers = lines[0].split(',').map(h => h.trim());
+
+  return lines.slice(1).map(line => {
+    // Regex to match CSV fields, handling quotes
+    const matches = line.match(/(?:^|,)(?:"([^"]*)"|([^",]*))/g);
+    if (!matches) return null;
+
+    const row: any = {};
+    let colIndex = 0;
+
+    // Quick and dirty manual split that respects quotes better than simple regex global match
+    // Actually, a simple state machine is more reliable for "val, val", val
+    let currentVal = '';
+    let inQuotes = false;
+    let values = [];
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(currentVal.trim());
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+    values.push(currentVal.trim()); // Last val
+
+    headers.forEach((h, i) => {
+      let val = values[i] || '';
+      // Remove surrounding quotes if present
+      if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+      row[h] = val;
+    });
+    return row;
+  }).filter(r => r);
+};
+
+// Lawyer RAG Search
+const searchLawyerType = (query: string): any => {
+  try {
+    const filePath = path.join(process.cwd(), 'lawyer_expertise.csv');
+    if (!fs.existsSync(filePath)) return null;
+
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const data = parseCSV(fileContent);
+
+    const lowerQuery = cleanQuery(query);
+    const terms = lowerQuery.split(' ').filter(t => t.length > 3);
+
+    let bestMatch = null;
+    let maxScore = 0;
+
+    data.forEach((row: any) => {
+      let score = 0;
+      const textToSearch = `${row.lawyer_category} ${row.specialization} ${row.specific_issues_handled} ${row.legal_keywords}`.toLowerCase();
+
+      if (row.lawyer_category.toLowerCase().includes(lowerQuery)) score += 10;
+
+      terms.forEach(term => {
+        if (textToSearch.includes(term)) score += 3;
+      });
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestMatch = row;
+      }
+    });
+
+    return maxScore > 0 ? bestMatch : null;
+  } catch (e) {
+    console.error("CSV Search Error", e);
+    return null;
+  }
+}
 
 const searchLegalRights = (query: string) => {
   if (!query || query.length < 2) return [];
@@ -68,9 +149,11 @@ export async function POST(req: Request) {
 
     // 1.5 Fetch User Context if logged in
     let userContext = "User is anonymous.";
+    let userProfile: any = null;
     if (userId) {
       const { data: profile } = await supabase.from('profiles').select('*').eq('clerk_id', userId).single();
       if (profile) {
+        userProfile = profile;
         userContext = `User Profile:
             - Type: ${profile.user_type || "General"}
             - Age: ${profile.age || "Unknown"}
@@ -84,9 +167,60 @@ export async function POST(req: Request) {
       }
     }
 
+    // 1.7 URL Content Fetching (for Summarization)
+    let externalContext = "";
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = message.match(urlRegex);
+    if (urls && urls.length > 0) {
+      try {
+        const url = urls[0];
+        console.log("Fetching content from:", url);
+        const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+        if (res.ok) {
+          const html = await res.text();
+          // Naive text extraction
+          const text = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<[^>]+>/g, ' ') // Strip tags
+            .replace(/\s+/g, ' ')     // Collapse whitespace
+            .trim()
+            .slice(0, 15000);         // Limit size
+          externalContext = `EXTERNAL ARTICLE CONTENT (${url}):\n${text}\n\n`;
+        }
+      } catch (e) {
+        console.error("Failed to fetch URL:", e);
+      }
+    }
+
     // 2. Perform Search on Legal DB (RAG Context)
     const relevantRights = searchLegalRights(message);
     const contextStr = relevantRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
+
+    // 2.5 Perform Lawyer Match
+    const lawyerMatch = searchLawyerType(message);
+    let suggestedLawyers: any[] = [];
+    if (lawyerMatch) {
+      // Query Supabase for lawyers with this specialization/category
+      // Note: Assuming 'specialization' is an array of text
+      const { data: lawyers } = await supabase
+        .from('lawyer_profiles')
+        .select(`
+                *,
+                profiles:clerk_id (first_name, last_name)
+            `)
+        .contains('specialization', [lawyerMatch.lawyer_category])
+        .limit(3);
+
+      if (lawyers) {
+        suggestedLawyers = lawyers.map(l => ({
+          id: l.id,
+          name: l.profiles ? `${l.profiles.first_name} ${l.profiles.last_name || ''}`.trim() : "Verified Lawyer",
+          specialization: l.specialization,
+          rating: l.rating,
+          fee: l.consultation_fee
+        }));
+      }
+    }
 
     // 3. Construct System Prompt forStructure
     const systemPrompt = `
@@ -96,21 +230,28 @@ export async function POST(req: Request) {
     CONTEXT ON USER:
     ${userContext}
 
+    EXTERNAL CONTEXT (Provided Article/Link):
+    ${externalContext}
+
     Based on the following known legal rights from our database:
     ${contextStr}
+    
+    LAWYER RECOMMENDATION CONTEXT:
+    Matched Category: ${lawyerMatch ? lawyerMatch.lawyer_category : "None"}
+    Suggested Lawyers Found: ${suggestedLawyers.length}
 
     RETURN XML/JSON ONLY.
-    If the question is legal, you MUST output a VALID JSON object adhering strictly to this schema:
+    If the question is legal or a summary request, you MUST output a VALID JSON object adhering strictly to this schema:
     {
       "type": "structured",
-      "topic": "Detected Legal Topic (e.g., Divorce Law, Tenant Rights)",
+      "topic": "Detected Legal Topic (e.g., Divorce Law, Tenant Rights, Article Summary)",
       "sub_topics": [
-         { "label": "Short label e.g., Documents", "detail": "Paragraph explaining this sub-topic..." },
-         { "label": "Process", "detail": "Step by step process..." }
+         { "label": "Key Insight", "detail": "Paragraph explaining this insight..." },
+         { "label": "Relevance to You", "detail": "How this affects the user based on their profile..." }
       ],
       "rights_cards": [
          {
-           "title": "Title of the right",
+           "title": "Related Right/Topic",
            "summary": "One sentence summary",
            "full_details": {
               "what_it_means": "Explanation...",
@@ -122,11 +263,19 @@ export async function POST(req: Request) {
            }
          }
       ],
-      "emotional_tone": "Optional reassuring message if topic is sensitive (divorce, harassment)."
+      "suggested_lawyers": [],
+      "emotional_tone": "Optional reassuring message or summary/takeaway.",
+      "message": "The main response text, summary, or answer."
     }
 
-    If the known rights are empty, use your general legal knowledge to fill the JSON, but mention "General Legal Info" in topic.
-    If the user asks for a specific template/draft, set "type" to "simple" and provide the draft in "message".
+    TASK INSTRUCTIONS:
+    1. If the user asks for a SUMMARY of a link or text:
+       - Summarize the 'EXTERNAL CONTEXT' or the user's text clearly.
+       - In 'sub_topics', explicitly add a section 'Relevance to You' explaining why this matters to a ${userProfile ? userProfile.user_type : 'citizen'}.
+       - If the article mentions legal breaches, map them to 'rights_cards'.
+    
+    2. If the known rights are empty, use your general legal knowledge to fill the JSON, but mention "General Legal Info" in topic.
+    3. If the user asks for a specific template/draft, set "type" to "simple" and provide the draft in "message".
     
     IMPORTANT: CITATIONS REQUIRED.
     Where possible, you MUST cite specific sections of Indian Acts (e.g., "Section 21 of the Rent Control Act", "Section 354 IPC").
@@ -145,9 +294,13 @@ export async function POST(req: Request) {
     });
 
     const content = completion.choices[0]?.message?.content || "{}";
-    let parsedData = {};
+    let parsedData: any = {};
     try {
       parsedData = JSON.parse(content);
+      // Inject the real lawyer data we fetched, overriding whatever hallucination or placeholder LLM might provide
+      if (suggestedLawyers.length > 0) {
+        parsedData.suggested_lawyers = suggestedLawyers;
+      }
     } catch (e) {
       console.error("JSON Parse Error", e);
       // Fallback
@@ -262,7 +415,7 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+} // End POST - Corrected closure block
 
 // Helper to normalize response for frontend
 function parsedResponseWrapper(data: any) {

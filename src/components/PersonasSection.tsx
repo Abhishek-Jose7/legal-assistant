@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+import { loadLegalData } from "@/lib/legalData";
+
 // Map categories to search terms for RAG
 const personasData = {
   students: {
@@ -86,10 +88,9 @@ export default function PersonasSection() {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    fetch('/api/legal-rights')
-      .then(res => res.json())
-      .then(data => setRightsData(data))
-      .catch(err => console.error("Failed to load legal rights:", err))
+    // Direct Client load to bypass API issues
+    const data = loadLegalData();
+    setRightsData(data);
   }, [])
 
   const handleCardClick = (item: { title: string, search: string }) => {

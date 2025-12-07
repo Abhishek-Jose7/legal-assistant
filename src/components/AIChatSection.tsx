@@ -51,6 +51,13 @@ interface Message {
     actions: string[];
     lawyer_recommended: boolean;
   }
+  suggested_lawyers?: {
+    id: string | number;
+    name: string;
+    specialization: string | string[];
+    rating?: number;
+    fee?: number;
+  }[]
 }
 
 // Icon helper
@@ -233,6 +240,21 @@ export default function AIChatSection() {
     setIsSidebarOpen(false); // Close sidebar on mobile
   };
 
+  // Auto-run if context param exists
+  useEffect(() => {
+    // Only run on client
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const context = params.get('context');
+      if (context && messages.length === 1) { // Only if initial state
+        const initialMsg = `I want to know about my rights regarding ${context}. What should I know?`;
+        // Remove param from URL to avoid loop on refresh
+        window.history.replaceState({}, '', '/chat');
+        handleSendMessage(initialMsg);
+      }
+    }
+  }, []);
+
   const startNewChat = () => {
     setCurrentSessionId(null);
     setMessages([{
@@ -374,9 +396,11 @@ export default function AIChatSection() {
         body: formData,
       })
 
-      if (!response.ok) throw new Error("Analysis failed")
-
       const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Analysis failed")
+      }
 
       // 3. Add Assistant Message with Analysis
       const aiMessage: Message = {
@@ -398,9 +422,9 @@ export default function AIChatSection() {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Analysis Error:", error)
-      setMessages((prev) => [...prev, { role: "assistant", content: "I encountered an error analyzing that document. Please try again with a clear image or text file." }])
+      setMessages((prev) => [...prev, { role: "assistant", content: `I encountered an error analyzing that document. ${error.message}` }])
     } finally {
       setIsLoading(false)
       setIsAnalyzingDoc(false)
@@ -627,6 +651,40 @@ export default function AIChatSection() {
                             )}
                           </CardContent>
                         </Card>
+                      </div>
+                    )}
+
+                    {/* Suggested Lawyers */}
+                    {message.suggested_lawyers && message.suggested_lawyers.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold text-slate-500 text-xs uppercase tracking-wider mb-2">Recommended Lawyers</h4>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {message.suggested_lawyers.map((lawyer, lIdx) => (
+                            <Card key={lIdx} className="border border-l-4 border-l-[#0F3D3E] overflow-hidden bg-white">
+                              <CardContent className="p-3">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h5 className="font-bold text-[#0F3D3E] text-sm">{lawyer.name}</h5>
+                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{Array.isArray(lawyer.specialization) ? lawyer.specialization.join(", ") : lawyer.specialization}</p>
+                                  </div>
+                                  {lawyer.rating && (
+                                    <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-200 shrink-0">
+                                      ★ {lawyer.rating}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="mt-3 flex items-center justify-between">
+                                  <div className="text-xs text-slate-700 font-medium">
+                                    {lawyer.fee ? `₹${lawyer.fee}/consult` : "Contact for Fee"}
+                                  </div>
+                                  <Button size="sm" variant="outline" className="h-7 text-xs border-[#0F3D3E] text-[#0F3D3E]" asChild>
+                                    <a href={`/lawyers/${lawyer.id}`}>View Profile</a>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

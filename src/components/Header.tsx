@@ -41,8 +41,8 @@ export default function Header() {
     { label: "Templates", href: "/templates", protected: false },
     { label: "Find Lawyer", href: "/lawyers", protected: false }, // Always visible
     { label: "Rights by Category", href: "/personas", protected: false, publicOnly: true },
-    { label: "My Profile", href: "/profile", protected: true },
     { label: "Legal Quiz", href: "/health-score", protected: false },
+    { label: "My Profile", href: "/profile", protected: true },
   ]
 
   const forLawyersLink = { label: "For Lawyers", href: "/lawyer/register", protected: false, publicOnly: true }
