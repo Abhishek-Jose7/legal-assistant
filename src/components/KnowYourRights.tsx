@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Home, Briefcase, GraduationCap, Heart, ShoppingCart, Shield, Smartphone, Accessibility, ChevronRight, MessageSquare, FileText, CheckCircle2, Search, Filter, Clock, AlertTriangle, BookOpen, MapPin, Trophy, Check } from "lucide-react"
+import { Home, Briefcase, GraduationCap, Heart, ShoppingCart, Shield, Smartphone, Accessibility, ChevronRight, MessageSquare, FileText, CheckCircle2, Search, Filter, Clock, AlertTriangle, BookOpen, MapPin, Trophy, Check, Scale } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { ScrollArea } from "@/components/ui/scroll-area"
