@@ -25,6 +25,7 @@ interface Message {
   // New Structured Fields
   type?: "simple" | "structured"
   topic?: string
+  confidence_level?: "High" | "Medium" | "Low"
   sub_topics?: { label: string; detail: string }[]
   rights_cards?: {
     title: string;
@@ -36,6 +37,8 @@ interface Message {
       steps?: string[];
       timeframe?: string;
       action_buttons?: string[];
+      citations?: { act: string; section?: string; link?: string }[];
+      common_mistakes?: string[];
     }
   }[]
   emotional_tone?: string
@@ -47,7 +50,9 @@ interface Message {
     summary: string;
     category: string;
     clauses: string[];
-    risks: string[];
+    risks: ({ risk: string; severity: "High" | "Medium" | "Low" } | string)[]; // Union for backward compact
+    worst_case_scenario?: string;
+    missing_clauses?: string[];
     actions: string[];
     lawyer_recommended: boolean;
   }
@@ -97,6 +102,28 @@ const RightDetailView = ({ right, isOpen, onClose }: { right: any, isOpen: boole
               <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
                 {details.when_applicable.map((cond: string, i: number) => <li key={i}>{cond}</li>)}
               </ul>
+            </div>
+          )}
+
+          {/* Legal Sources / Citations */}
+          {(details.citations || right.law_links) && (
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <Scale className="h-4 w-4" /> Source of Law
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {[...(details.citations || []), ...(right.law_links || [])].map((cit: any, i: number) => (
+                  <a
+                    key={i}
+                    href={cit.link || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(`${cit.act} ${cit.section || ''}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs flex items-center gap-1 bg-white border border-slate-300 hover:border-[#0F3D3E] text-slate-600 hover:text-[#0F3D3E] px-3 py-1.5 rounded-full transition-all"
+                  >
+                    <span className="font-medium">{cit.act}</span> {cit.section && <span className="opacity-75">Section {cit.section}</span>}
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 
@@ -178,7 +205,7 @@ export default function AIChatSection() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Lexi, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?",
+      content: "Hello! I'm Nyaaya, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?",
     },
   ])
   const [input, setInput] = useState("")
@@ -259,7 +286,7 @@ export default function AIChatSection() {
     setCurrentSessionId(null);
     setMessages([{
       role: "assistant",
-      content: "Hello! I'm Lexi, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?",
+      content: "Hello! I'm Nyaaya, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?",
     }]);
     setIsSidebarOpen(false);
   };
@@ -447,7 +474,7 @@ export default function AIChatSection() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `lexi-law-chat-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = `nyaaya-ai-chat-${new Date().toISOString().slice(0, 10)}.txt`;
     a.click();
   }
 
@@ -494,7 +521,7 @@ export default function AIChatSection() {
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-sm">Lexi AI</h3>
+              <h3 className="font-bold text-slate-800 text-sm">Nyaaya AI</h3>
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                 <span className="text-[10px] text-slate-500 font-medium">Online</span>
@@ -504,6 +531,12 @@ export default function AIChatSection() {
           <Button variant="outline" size="sm" onClick={handleSaveChat} className="text-xs h-8 gap-2 bg-slate-50 hover:bg-slate-100 hidden sm:flex">
             <Download className="h-3 w-3" /> Save Chat
           </Button>
+        </div>
+
+        {/* TRUST BANNER */}
+        <div className="bg-yellow-50 border-b border-yellow-100 px-4 py-2 flex items-center justify-center gap-2 text-[10px] md:text-xs text-yellow-800 text-center">
+          <Scale className="h-3 w-3 shrink-0" />
+          <span>This platform provides legal information and risk awareness, not professional legal advice. <span className="hidden sm:inline">Always consult a qualified lawyer for serious matters.</span></span>
         </div>
 
         {/* Messages Area */}
@@ -599,6 +632,40 @@ export default function AIChatSection() {
                         <p>{message.emotional_tone}</p>
                       </div>
                     )}
+
+                    {/* CONFIDENCE & SOURCES (Trust Indicators) */}
+                    {(message.confidence_level || (message.rights_cards && message.rights_cards[0]?.full_details?.citations)) && (
+                      <div className="flex flex-wrap gap-3 mt-2">
+                        {message.confidence_level && (
+                          <Badge variant="outline" className={`
+                            text-xs border px-2 py-0.5 rounded-full flex items-center gap-1
+                            ${message.confidence_level === 'High' ? 'bg-green-50 text-green-700 border-green-200' :
+                              message.confidence_level === 'Medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                'bg-red-50 text-red-700 border-red-200'}
+                          `}>
+                            {message.confidence_level === 'High' ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                            {message.confidence_level} Confidence
+                          </Badge>
+                        )}
+
+                        {/* Source Citations */}
+                        {message.rights_cards?.map((rc, idx) =>
+                          rc.full_details?.citations?.map((cit, cIdx) => (
+                            <a
+                              key={`${idx}-${cIdx}`}
+                              href={cit.link || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(`${cit.act} ${cit.section || ''}`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded-full transition-colors"
+                            >
+                              <Scale className="h-3 w-3" />
+                              {cit.act} {cit.section && `(§${cit.section})`}
+                            </a>
+                          ))
+                        )}
+                      </div>
+                    )}
+
                     {/* ANALYSIS RESULT RENDERER */}
                     {message.analysis && (
                       <div className="mt-4 animate-in fade-in slide-in-from-bottom-2">
@@ -614,16 +681,48 @@ export default function AIChatSection() {
                           <CardContent className="space-y-3 p-3 pt-0">
                             {/* RISKS */}
                             <div>
-                              <h4 className="font-bold text-red-900 text-xs uppercase tracking-wide mb-1">⚠️ Potential Risks</h4>
-                              <ul className="space-y-1">
-                                {message.analysis.risks.map((risk, idx) => (
-                                  <li key={idx} className="flex gap-2 text-xs text-red-800 bg-red-100 p-1.5 rounded border border-red-200">
-                                    <span>•</span> {risk}
-                                  </li>
-                                ))}
+                              <h4 className="font-bold text-red-900 text-xs uppercase tracking-wide mb-2 flex items-center justify-between">
+                                <span>⚠️ Potential Risks</span>
+                                <span className="text-[10px] font-normal normal-case opacity-70">Severity Level</span>
+                              </h4>
+                              <ul className="space-y-2">
+                                {message.analysis.risks.map((riskItem: any, idx) => {
+                                  // Handle both legacy string and new object format
+                                  const riskText = typeof riskItem === 'string' ? riskItem : riskItem.risk;
+                                  const severity = typeof riskItem === 'string' ? 'Medium' : riskItem.severity;
+
+                                  return (
+                                    <li key={idx} className="flex gap-2 text-xs text-red-800 bg-red-100/50 p-2 rounded border border-red-200 items-start justify-between">
+                                      <div className="flex gap-2">
+                                        <span className="mt-0.5">•</span>
+                                        <span>{riskText}</span>
+                                      </div>
+                                      <Badge className={`
+                                        text-[9px] h-5 px-1.5 hover:none border shadow-none
+                                        ${severity === 'High' ? 'bg-red-600 text-white' :
+                                          severity === 'Medium' ? 'bg-orange-500 text-white' :
+                                            'bg-yellow-500 text-white'}
+                                      `}>
+                                        {severity}
+                                      </Badge>
+                                    </li>
+                                  )
+                                })}
                                 {message.analysis.risks.length === 0 && <p className="text-xs text-green-700 italic">No major risks detected.</p>}
                               </ul>
                             </div>
+
+                            {/* WORST CASE SCENARIO */}
+                            {message.analysis.worst_case_scenario && (
+                              <div className="mt-3 bg-red-900/5 border border-red-900/10 p-2 rounded">
+                                <h4 className="font-bold text-red-900 text-[10px] uppercase mb-1 flex items-center gap-1">
+                                  <AlertTriangle className="h-3 w-3" /> Worst Case Scenario
+                                </h4>
+                                <p className="text-xs text-red-800 leading-snug">
+                                  {message.analysis.worst_case_scenario}
+                                </p>
+                              </div>
+                            )}
 
                             {/* SUMMARY */}
                             <div className="bg-white p-2 rounded border border-slate-200">

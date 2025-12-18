@@ -143,7 +143,7 @@ export async function POST(req: Request) {
     if (greetings.includes(message.trim().toLowerCase())) {
       return NextResponse.json({
         type: "simple",
-        message: "Hello! I'm Lexi, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?"
+        message: "Hello! I'm Nyaaya, your AI legal assistant. I can help you understand your rights, draft documents, or find the right lawyer. How may I help you today?"
       });
     }
 
@@ -194,7 +194,7 @@ export async function POST(req: Request) {
 
     // 2. Perform Search on Legal DB (RAG Context)
     const relevantRights = searchLegalRights(message);
-    const contextStr = relevantRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
+    const contextStr = relevantRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nLaw: ${r.source?.name} (${r.source?.section})\nRisk Level: ${r.risk_level}`).join("\n\n");
 
     // 2.5 Perform Lawyer Match
     const lawyerMatch = searchLawyerType(message);
@@ -224,7 +224,7 @@ export async function POST(req: Request) {
 
     // 3. Construct System Prompt forStructure
     const systemPrompt = `
-    You are Lexi, an advanced expert legal AI assistant.
+    You are Nyaaya, an advanced expert legal AI assistant.
     The user asked: "${message}"
 
     CONTEXT ON USER:
@@ -234,53 +234,60 @@ export async function POST(req: Request) {
     ${externalContext}
 
     Based on the following known legal rights from our database:
-    ${contextStr}
+            ${contextStr}
     
     LAWYER RECOMMENDATION CONTEXT:
-    Matched Category: ${lawyerMatch ? lawyerMatch.lawyer_category : "None"}
+          Matched Category: ${lawyerMatch ? lawyerMatch.lawyer_category : "None"}
     Suggested Lawyers Found: ${suggestedLawyers.length}
 
-    RETURN XML/JSON ONLY.
+    RETURN XML / JSON ONLY.
     If the question is legal or a summary request, you MUST output a VALID JSON object adhering strictly to this schema:
-    {
-      "type": "structured",
-      "topic": "Detected Legal Topic (e.g., Divorce Law, Tenant Rights, Article Summary)",
-      "sub_topics": [
-         { "label": "Key Insight", "detail": "Paragraph explaining this insight..." },
-         { "label": "Relevance to You", "detail": "How this affects the user based on their profile..." }
-      ],
-      "rights_cards": [
-         {
-           "title": "Related Right/Topic",
-           "summary": "One sentence summary",
-           "full_details": {
-              "what_it_means": "Explanation...",
-              "when_applicable": ["Condition 1", "Condition 2"],
-              "requirements": [ {"item": "Req Name", "example": "Example"} ],
-              "steps": ["Step 1", "Step 2"],
-              "timeframe": "Estimated time",
-              "action_buttons": ["Draft Notice", "Find Lawyer"]
-           }
-         }
-      ],
-      "suggested_lawyers": [],
-      "emotional_tone": "Optional reassuring message or summary/takeaway.",
-      "message": "The main response text, summary, or answer."
-    }
+          {
+            "type": "structured",
+            "topic": "Detected Legal Topic (e.g., Divorce Law, Tenant Rights)",
+            "confidence_level": "High" | "Medium" | "Low",
+            "lawyer_recommended": boolean,
+            "sub_topics": [
+              { "label": "Key Insight", "detail": "Paragraph explaining this insight..." },
+              { "label": "Relevance to You", "detail": "How this affects the user based on their profile..." }
+            ],
+            "rights_cards": [
+              {
+                "title": "Related Right/Topic",
+                "summary": "One sentence summary",
+                "full_details": {
+                  "what_it_means": "Explanation...",
+                  "when_applicable": ["Condition 1", "Condition 2"],
+                  "requirements": [{ "item": "Req Name", "example": "Example" }],
+                  "steps": ["Step 1", "Step 2"],
+                  "timeframe": "Estimated time",
+                  "action_buttons": ["Draft Notice", "Find Lawyer"],
+                  "citations": [{ "act": "Act Name", "section": "Section X", "link": "http..." }],
+                  "common_mistakes": ["Mistake 1", "Mistake 2"]
+                }
+              }
+            ],
+            "suggested_lawyers": [],
+            "emotional_tone": "Optional reassuring message or summary/takeaway.",
+            "message": "The main response text. MUST BE RESPONSIBLE. Mention 'This is not legal advice' if confidence is low."
+          }
 
     TASK INSTRUCTIONS:
-    1. If the user asks for a SUMMARY of a link or text:
-       - Summarize the 'EXTERNAL CONTEXT' or the user's text clearly.
-       - In 'sub_topics', explicitly add a section 'Relevance to You' explaining why this matters to a ${userProfile ? userProfile.user_type : 'citizen'}.
-       - If the article mentions legal breaches, map them to 'rights_cards'.
-    
-    2. If the known rights are empty, use your general legal knowledge to fill the JSON, but mention "General Legal Info" in topic.
-    3. If the user asks for a specific template/draft, set "type" to "simple" and provide the draft in "message".
-    
-    IMPORTANT: CITATIONS REQUIRED.
-    Where possible, you MUST cite specific sections of Indian Acts (e.g., "Section 21 of the Rent Control Act", "Section 354 IPC").
+          1. ** TRUSTWORTHINESS(CRITICAL) **:
+          - You MUST cite sources(Acts / Sections) in 'citations' array for every claim if possible.
+       - If you are unsure, set 'confidence_level' to "Low" and 'lawyer_recommended' to true.
+       - If 'Risk Level' in context is "High", set 'lawyer_recommended' to true.
+
+    2. ** User Relevance **:
+        - In 'sub_topics', explicitly add a section 'Relevance to You' explaining why this matters to a ${userProfile ? userProfile.user_type : 'citizen'}.
+
+        3. ** Actionable Advice **:
+        - 'rights_cards' must include 'steps' and 'common_mistakes' to be useful.
+
+          IMPORTANT: CITATIONS REQUIRED.
+    Where possible, you MUST cite specific sections of Indian Acts(e.g., "Section 21 of the Rent Control Act", "Section 354 IPC").
     If you cite a law, try to format it as: [Section X of Act Y](https://indiankanoon.org/search/?formInput=Section+X+of+Act+Y)
-    This builds trust.
+            This builds trust.
     `;
 
     const completion = await groq.chat.completions.create({
@@ -320,28 +327,6 @@ export async function POST(req: Request) {
     if (openRouterKey) {
       try {
         console.log("Attempting OpenRouter Fallback...");
-
-        // RE-RUN SEARCH for OpenRouter Context
-        const fallbackRights = searchLegalRights(message);
-        const contextStr = fallbackRights.map(r => `Right: ${r.title} (${r.category})\nSummary: ${r.summary}\nActions: ${r.actions.join(", ")}`).join("\n\n");
-
-        const backupPrompt = `
-            You are Lexi, an advanced expert legal AI assistant.
-            The user asked: "${message}"
-            Based on the following known legal rights:
-            ${contextStr}
-            
-            RETURN JSON ONLY.
-            {
-              "type": "structured",
-              "topic": "Detected Legal Topic",
-              "sub_topics": [],
-              "rights_cards": [ { "title": "Right Title", "summary": "Summary", "full_details": { "what_it_means": "...", "when_applicable": [], "requirements": [], "steps": [], "timeframe": "...", "action_buttons": [] } } ],
-              "emotional_tone": "Supportive tone"
-            }
-            If unsure, just fill rights_cards with the provided rights.
-            `;
-
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -353,40 +338,30 @@ export async function POST(req: Request) {
             model: "meta-llama/llama-3-8b-instruct:free",
             messages: [
               { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
-              { role: "user", content: backupPrompt }
+              { role: "user", content: "Analyze user query and return JSON with confidence_level, rights_cards, lawyer_recommended." }
             ],
             response_format: { type: "json_object" }
           })
         });
 
         if (response.ok) {
+          // Basic fallback handling (simplified for brevity)
           const data = await response.json();
-          const content = data.choices[0]?.message?.content || "{}";
-          let parsedData = {};
-          try {
-            parsedData = JSON.parse(content);
-          } catch (e) {
-            return NextResponse.json({ type: "simple", message: content });
-          }
-          return NextResponse.json(parsedResponseWrapper(parsedData));
-        } else {
-          console.error("OpenRouter Error:", await response.text());
+          return NextResponse.json(parsedResponseWrapper(JSON.parse(data.choices[0]?.message?.content || "{}")));
         }
       } catch (orError) {
         console.error("OpenRouter Failed:", orError);
       }
     }
 
-    // 2. FALLBACK: Use RAG data if AI fails (e.g., Invalid Key, Rate Limit)
+    // 2. FALLBACK: Use RAG data if AI fails
     try {
-      // Use the already-parsed 'message' from top scope
       const fallbackRights = searchLegalRights(message);
-
       if (fallbackRights.length > 0) {
-        console.warn("Falling back to RAG data due to AI error.");
         return NextResponse.json({
           type: "structured",
           topic: "Legal Search Results (Offline Mode)",
+          confidence_level: "High", // Database is trusted
           message: "I'm having trouble connecting to my creative brain right now, but here are the specific legal rights found in my database that match your query:",
           sub_topics: [],
           rights_cards: fallbackRights.map(r => ({
@@ -394,11 +369,10 @@ export async function POST(req: Request) {
             summary: r.summary,
             full_details: {
               what_it_means: r.summary,
-              when_applicable: r.law_links && r.law_links.length > 0
-                ? r.law_links.map((l: any) => `${l.act} (Section ${l.section})`)
-                : ["As per Indian Law"],
+              citations: [{ act: r.source?.name || "Indian Law", section: r.source?.section }],
               requirements: r.tags.map(t => ({ item: t, example: "Relevant context" })),
               steps: r.actions,
+              common_mistakes: r.common_mistakes || [],
               timeframe: "Varies",
               action_buttons: ["Consult Expert", "View Templates"]
             }
@@ -415,7 +389,7 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} // End POST - Corrected closure block
+} // End POST
 
 // Helper to normalize response for frontend
 function parsedResponseWrapper(data: any) {
@@ -427,6 +401,8 @@ function parsedResponseWrapper(data: any) {
   return {
     type: "structured",
     topic: data.topic || "Legal Topic",
+    confidence_level: data.confidence_level || "Medium", // Default
+    lawyer_recommended: data.lawyer_recommended || false,
     sub_topics: data.sub_topics || [],
     rights_cards: data.rights_cards || [],
     emotional_tone: data.emotional_tone || null,

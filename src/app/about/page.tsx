@@ -1,9 +1,10 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { Scale, Users, Shield, Target } from "lucide-react"
+import { Metadata } from "next"
 
-export const metadata = {
-    title: "About Us - Lexi.AI",
+export const metadata: Metadata = {
+    title: "About Us - NyaayaAi",
     description: "Learn about our mission to make legal assistance accessible to everyone.",
 }
 
@@ -32,70 +33,48 @@ export default function AboutPage() {
     ]
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-[#F9F7F2] font-sans text-slate-900">
             <Header />
-            <main className="pt-16">
-                {/* Hero */}
-                <div className="bg-[#1e3a8a] py-20 text-white">
-                    <div className="container mx-auto px-4 md:px-6 text-center">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-6">About Lexi.AI</h1>
-                        <p className="text-xl max-w-2xl mx-auto text-blue-100">
-                            Democratizing legal access through artificial intelligence and human expertise.
+            <main className="pt-24 pb-16">
+                {/* Hero Section */}
+                <section className="relative px-4 sm:px-6 lg:px-8 py-12 md:py-20 text-center">
+                    <div className="max-w-4xl mx-auto">
+                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#0F3D3E] mb-6">
+                            Democratizing Legal Access with AI
+                        </h1>
+                        <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                            Nyaaya is your personal legal companion, designed to simplify Indian law and empower you with knowledge.
                         </p>
                     </div>
-                </div>
+                </section>
 
-                {/* Mission */}
-                <section className="py-16 md:py-24 bg-white">
-                    <div className="container mx-auto px-4 md:px-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                            <div>
-                                <h2 className="text-3xl font-bold text-slate-900 mb-6">Our Mission</h2>
-                                <div className="space-y-4 text-lg text-slate-600">
-                                    <p>
-                                        Navigating the legal system can be overwhelming, expensive, and confusing.
-                                        Millions of people forego their rights simply because they don't understand them or can't afford a lawyer.
-                                    </p>
-                                    <p>
-                                        Lexi.AI was built to change that. We combine advanced AI technology with a network of verified legal professionals
-                                        to bridge the justice gap.
-                                    </p>
-                                    <p>
-                                        Whether you are a student facing university issues, a tenant dealing with a landlord,
-                                        or an employee denied their rights, Lexi.AI is your first line of defense.
-                                    </p>
+                {/* Values Grid */}
+                <section className="px-4 sm:px-6 lg:px-8 py-12 bg-white">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl font-bold text-[#0F3D3E]">Our Core Values</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {values.map((value, index) => (
+                                <div key={index} className="p-6 bg-[#F5EEDC]/20 rounded-xl border border-[#C8AD7F]/20 hover:shadow-lg transition-shadow">
+                                    <div className="w-12 h-12 bg-[#0F3D3E] rounded-lg flex items-center justify-center mb-4 mx-auto">
+                                        <value.icon className="h-6 w-6 text-[#F5EEDC]" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-3 text-center">{value.title}</h3>
+                                    <p className="text-slate-600 text-center">{value.description}</p>
                                 </div>
-                            </div>
-                            <div className="relative h-[400px] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-100">
-                                {/* Placeholder for an image */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                                    <Scale className="h-32 w-32 text-[#1e3a8a]/20" />
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
-                {/* Values */}
-                <section className="py-16 bg-slate-50">
-                    <div className="container mx-auto px-4 md:px-6">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-4">Our Core Values</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {values.map((value) => {
-                                const Icon = value.icon
-                                return (
-                                    <div key={value.title} className="bg-white p-8 rounded-xl shadow-sm border hover:shadow-md transition-all">
-                                        <div className="w-12 h-12 bg-[#1e3a8a]/10 rounded-lg flex items-center justify-center mb-6 text-[#1e3a8a]">
-                                            <Icon className="h-6 w-6" />
-                                        </div>
-                                        <h3 className="text-xl font-bold text-slate-900 mb-3">{value.title}</h3>
-                                        <p className="text-slate-600">{value.description}</p>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                {/* Mission Statement */}
+                <section className="px-4 sm:px-6 lg:px-8 py-16">
+                    <div className="max-w-4xl mx-auto text-center bg-[#0F3D3E] rounded-2xl p-8 md:p-12 shadow-xl">
+                        <h2 className="text-3xl font-bold text-[#F5EEDC] mb-6">Our Mission</h2>
+                        <p className="text-lg text-[#F5EEDC]/80 leading-relaxed">
+                            "To bridge the gap between complex legal systems and the common man by leveraging advanced artificial intelligence, ensuring that every citizen understands their rights and has access to affordable legal recourse."
+                        </p>
                     </div>
                 </section>
             </main>

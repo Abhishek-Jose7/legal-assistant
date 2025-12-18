@@ -76,7 +76,11 @@ export async function POST(req: Request) {
                   "summary": "Brief summary of the document",
                   "category": "Legal Category (e.g. Tenancy, Employment)",
                   "clauses": ["Key Clause 1", "Key Clause 2"],
-                  "risks": ["Risk 1 (High Severity)", "Risk 2"],
+                  "risks": [
+                    { "risk": "High-risk clause detected", "severity": "High" | "Medium" | "Low", "explanation": "Why this is risky" }
+                  ],
+                  "worst_case_scenario": "One sentence describing the worst outcome for the user based on these risks.",
+                  "missing_clauses": ["List of standard clauses missing (e.g., Termination Notice)"],
                   "actions": ["Recommended Action 1", "Recommended Action 2"],
                   "lawyer_recommended": boolean
                 }
@@ -104,10 +108,15 @@ export async function POST(req: Request) {
                     analysisData = match ? JSON.parse(match[0]) : {
                         summary: "Analysis completed but format was raw.",
                         category: "Unknown",
-                        risks: ["Could not parse structured risks."],
+                        risks: [],
                         clauses: [],
                         actions: ["Consult a lawyer manually."]
                     };
+                }
+
+                // Normalizing risks array if AI returned string array by mistake
+                if (analysisData.risks && Array.isArray(analysisData.risks) && typeof analysisData.risks[0] === 'string') {
+                    analysisData.risks = analysisData.risks.map((r: string) => ({ risk: r, severity: "Medium" }));
                 }
 
                 return NextResponse.json({ analysis: analysisData, extractedText });
@@ -133,19 +142,20 @@ export async function POST(req: Request) {
         else if (lowerText.includes("service") || lowerText.includes("client") || lowerText.includes("contractor")) category = "Service Agreement";
 
         // Detect Risks
-        if (lowerText.includes("terminate") || lowerText.includes("termination")) risks.push("Review 'Termination Clause' carefully for notice periods.");
-        if (lowerText.includes("indemnify") || lowerText.includes("indemnity")) risks.push("Contains 'Indemnity' clause - you may be liable for damages.");
+        if (lowerText.includes("terminate") || lowerText.includes("termination")) risks.push({ risk: "Review 'Termination Clause' carefully for notice periods.", severity: "Medium" });
+        if (lowerText.includes("indemnify") || lowerText.includes("indemnity")) risks.push({ risk: "Contains 'Indemnity' clause - you may be liable for damages.", severity: "High" });
         if (lowerText.includes("arbitration") || lowerText.includes("jurisdiction")) clauses.push("Dispute Resolution / Jurisdiction Clause Detected.");
-        if (lowerText.includes("penalty") || lowerText.includes("interest")) risks.push("Contains financial penalty clauses for delays/breaches.");
-        if (lowerText.includes("non-compete")) risks.push("Restrictive 'Non-Compete' clause found.");
+        if (lowerText.includes("penalty") || lowerText.includes("interest")) risks.push({ risk: "Contains financial penalty clauses for delays/breaches.", severity: "Medium" });
+        if (lowerText.includes("non-compete")) risks.push({ risk: "Restrictive 'Non-Compete' clause found.", severity: "High" });
 
         const heuristicData = {
             summary: `Automated scan extracted ${extractedText.length} characters. Identified as likely ${category}.`,
             category,
             clauses: clauses.length > 0 ? clauses : ["No specific clauses flagged by basic scan."],
-            risks: risks.length > 0 ? risks : ["No obvious keywords found. Manual review recommended."],
+            risks: risks.length > 0 ? risks : [{ risk: "No obvious keywords found. Manual review recommended.", severity: "Low" }],
+            worst_case_scenario: "Potential financial loss if terms are unclear.",
             actions: ["Review highlighted clauses with a lawyer.", "Verify all dates and monetary figures."],
-            lawyer_recommended: risks.length > 0
+            lawyer_recommended: risks.some((r: any) => r.severity === "High")
         };
 
         return NextResponse.json({ analysis: heuristicData, extractedText });

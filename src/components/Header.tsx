@@ -30,7 +30,6 @@ export default function Header() {
   }, [user])
 
   useEffect(() => {
-    // Always show header (removed scroll threshold)
     setIsVisible(true)
   }, [scrollPosition])
 
@@ -48,32 +47,16 @@ export default function Header() {
   const forLawyersLink = { label: "For Lawyers", href: "/lawyer/register", protected: false, publicOnly: true }
 
   let navItems = baseNavItems.filter(item => {
-    // If item is protected and user is NOT logged in -> Hide
     if (item.protected && !user) return false;
-    // If item is publicOnly and user IS logged in -> Hide
     if (item.publicOnly && user) return false;
-
     return true;
   });
 
-  // Add For Lawyers only if not logged in (logic requested: don't show if logged in as normal person)
-  // Simplified: If publicOnly logic works, we just append it to base list or check it here
   if (!user) {
     navItems.push(forLawyersLink);
-  } else {
-    // If logged in, we check if they are explicitly a lawyer to maybe show dashboard, 
-    // but user requested "don't show for lawyers on navbar when logged in" (implied context: simplify for users)
   }
 
-  // Final cleanup: Ensure no duplicates if array logic is complex
   navItems = [...new Map(navItems.map(item => [item.label, item])).values()];
-  // Wait, if they are a Lawyer, they might not need "For Lawyers" (Register) either? 
-  // But let's stick to the request: "without the find lawyer button if the user is a normal person"
-  // If I interpret literally: Remove "Find Lawyer" if normal person.
-  // That would be `navItems = navItems.filter(i => i.label !== 'Find Lawyer')` if isNormalUser.
-
-  // I will assume the user meant "For Lawyers" button. 
-  // And I'll remove the Duplicate "Find Lawyer" from base items carefully.
 
   return (
     <motion.header
@@ -103,7 +86,7 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
           >
-            Lexi.AI
+            NyaayaAi
           </motion.span>
         </Link>
 

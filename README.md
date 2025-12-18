@@ -1,17 +1,3 @@
-# Legal AI - Your Personal AI Legal Assistant
-
-Legal AI is a comprehensive web application designed to democratize access to legal information in India. It empowers users with AI-driven legal advice, document analysis, and a structured "Know Your Rights" knowledge base.
-
-## 🚀 Key Features
-
-*   **🤖 AI Legal Assistant**: Chat with an intelligent legal assistant powered by LLMs (Groq/OpenRouter). It understands natural language queries, provides legal context, and suggests relevant lawyers.
-*   **📚 Know Your Rights**: A browseable, searchable library of legal rights categorized by persona (Student, Woman, Employee, Tenant, etc.). Includes actionable steps, required documents, and example scenarios.
-*   **🧠 Legal Health Quiz**: An interactive quiz to assess your legal awareness and get personalized recommendations.
-*   **📄 Document Analysis**: Upload legal documents (PDF/Image) for AI-powered summarization and analysis using OCR (Tesseract.js) and PDF parsing.
-*   **⚖️ Lawyer Directory**: Find and connect with lawyers specializing in various fields (Consumer, Criminal, Family, etc.).
-*   **👤 personalized Dashboard**: Track your learning progress, saved chats, and completed rights modules.
-*   **🔒 Secure Authentication**: Robust user management and authentication via Clerk.
-
 ## 🛠️ Tech Stack
 
 *   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)

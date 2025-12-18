@@ -14,7 +14,7 @@ export default function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0F3D3E]">
                 <Scale className="h-5 w-5 text-[#F5EEDC]" />
               </div>
-              <span className="text-[#F5EEDC]">Lexi.AI</span>
+              <span className="text-[#F5EEDC]">NyaayaAi</span>
             </Link>
             <p className="text-sm text-slate-400 max-w-md mb-4">
               Your personal legal assistant that explains laws in simple language and connects you to affordable verified lawyers.
@@ -85,7 +85,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-500">
-              © 2025 Lexi.AI. All rights reserved.
+              © 2025 NyaayaAi. All rights reserved.
             </p>
             <p className="text-xs text-slate-600 text-center md:text-right max-w-md">
               Legal information provided is for educational purposes only and should not be considered as professional legal advice. Please consult a qualified lawyer for your specific situation.

@@ -13,7 +13,7 @@ export default function TermsPage() {
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Terms of Service</h1>
 
                 <div className="prose prose-slate max-w-none">
-                    <p className="lead">Last updated: December 6, 2024</p>
+                    <p className="lead">Last updated: December 6, 2025</p>
 
                     <h3>1. Acceptance of Terms</h3>
                     <p>

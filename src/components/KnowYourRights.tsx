@@ -91,6 +91,7 @@ interface LegalRight {
   summary: string;
   actions: string[];
   tags: string[];
+  law_links?: any[];
   // Enriched fields
   difficulty?: "Easy" | "Medium" | "Hard";
   time_estimate?: string;
@@ -98,6 +99,9 @@ interface LegalRight {
   required_documents?: string[];
   example_case?: { title: string; scenario: string; outcome: string };
   help_contact?: string;
+  // Trust Fields
+  source?: { name: string; section?: string; url?: string };
+  common_mistakes?: string[];
 }
 
 export default function KnowYourRights() {
@@ -139,19 +143,43 @@ export default function KnowYourRights() {
 
   // Fetch User Progress
   useEffect(() => {
-    if (!user) return;
-    const fetchProgress = async () => {
-      const { data, error } = await supabase
-        .from('user_rights_progress')
-        .select('right_id')
-        .eq('user_id', user.id)
-        .eq('status', 'completed');
-
-      if (data) {
-        setCompletedRights(new Set(data.map(d => d.right_id)));
+    // 1. Load from LocalStorage first (Instant)
+    const local = localStorage.getItem("legal_ai_completed_rights");
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) {
+          setCompletedRights(prev => {
+            const next = new Set(prev);
+            parsed.forEach((id: string) => next.add(id));
+            return next;
+          });
+        }
+      } catch (e) {
+        console.error("Local storage parse error", e);
       }
-    };
-    fetchProgress();
+    }
+
+    // 2. Load from Supabase (Persistent)
+    if (user) {
+      const fetchProgress = async () => {
+        const { data, error } = await supabase
+          .from('user_rights_progress')
+          .select('right_id')
+          .eq('user_id', user.id)
+          .eq('status', 'completed');
+
+        if (data) {
+          setCompletedRights(prev => {
+            const next = new Set(prev);
+            data.forEach(d => next.add(d.right_id));
+            // Sync specific items back to local? No, source of truth merge.
+            return next;
+          });
+        }
+      };
+      fetchProgress();
+    }
   }, [user]);
 
   // Personalization Logic (kept from previous version)
@@ -178,12 +206,15 @@ export default function KnowYourRights() {
 
   // --- Handlers ---
   const handleMarkComplete = async (right: LegalRight) => {
-    if (!user) return;
-
     // Optimistic Update
     const newSet = new Set(completedRights);
     newSet.add(right.id);
     setCompletedRights(newSet);
+
+    // Save to LocalStorage
+    localStorage.setItem("legal_ai_completed_rights", JSON.stringify(Array.from(newSet)));
+
+    if (!user) return;
 
     try {
       await supabase.from('user_rights_progress').upsert({
@@ -195,7 +226,7 @@ export default function KnowYourRights() {
         completed_at: new Date().toISOString()
       }, { onConflict: 'user_id, right_id' });
     } catch (e) {
-      console.error("Failed to save progress", e);
+      console.error("Failed to save progress to cloud", e);
     }
   };
 
@@ -433,7 +464,45 @@ export default function KnowYourRights() {
                                   <p className="text-slate-700 leading-relaxed text-sm bg-slate-50 p-4 rounded-lg border border-slate-100">
                                     {right.summary}
                                   </p>
+
+                                  {/* SOURCE OF LAW (New Trust Feature) */}
+                                  {(right.source || right.law_links?.length > 0) && (
+                                    <div className="mt-4 flex items-center gap-3">
+                                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Source:</span>
+                                      {right.source ? (
+                                        <a
+                                          href={(right.source as any).url || "#"}
+                                          target="_blank"
+                                          className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 hover:underline flex gap-1 items-center"
+                                        >
+                                          <Scale className="h-3 w-3" /> {(right.source as any).name} {(right.source as any).section ? `§${(right.source as any).section}` : ''}
+                                        </a>
+                                      ) : (
+                                        right.law_links?.map((l: any, i: number) => (
+                                          <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700">
+                                            {l.act}
+                                          </span>
+                                        ))
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
+
+                                {/* Common Mistakes (New Deep Feature) */}
+                                {(right.common_mistakes && right.common_mistakes.length > 0) && (
+                                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                                    <h5 className="flex items-center gap-2 text-sm font-bold text-yellow-800 uppercase tracking-wide mb-2">
+                                      <AlertTriangle className="h-4 w-4" /> Avoid These Mistakes
+                                    </h5>
+                                    <ul className="space-y-1">
+                                      {right.common_mistakes.map((mistake, mIdx) => (
+                                        <li key={mIdx} className="text-sm text-yellow-900 flex gap-2">
+                                          <span className="mt-1">•</span> {mistake}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
 
                                 {/* 2. Action Plan */}
                                 {right.actions.length > 0 && (
