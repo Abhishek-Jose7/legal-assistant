@@ -1,0 +1,222 @@
+[33mcommit f783d589ce4496501c5f2aff895caaf459c07a13[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: johann-jos <johannjoseph232006@gmail.com>
+Date:   Wed Jan 28 22:06:26 2026 +0530
+
+    first commit
+
+[33mcommit 4950e9945e02fff21f8a7d5d8be057d0f56dffbf[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Thu Dec 18 10:42:24 2025 +0530
+
+    psh
+
+[33mcommit f9495765a7fea7e34e8a54d8cff893edc4a02b46[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Thu Dec 18 10:27:50 2025 +0530
+
+    hack
+
+[33mcommit 9b09505a8e7a818391a7ae7f45dea89c86d82ac7[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 10:10:49 2025 +0530
+
+    Remove webpack config to fix Turbopack build error
+
+[33mcommit 0030d02f6043d52eee03d333adc79a83fb0c21dc[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 10:09:21 2025 +0530
+
+    Fix build error: ignore canvas in webpack and lazy load pdf-parse
+
+[33mcommit a595c3927854ec1248e793c9942f6e65874ba3d5[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 10:06:24 2025 +0530
+
+    last md
+
+[33mcommit 6625ce2461df16f3e497b9bca4052107435d0884[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 08:53:38 2025 +0530
+
+    lol
+
+[33mcommit 8ae5941fb0e41a1174ce1dfcf7847a9b88dae687[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 05:07:05 2025 +0530
+
+    hi
+
+[33mcommit c4979f4f1cb86037f5514377717245e712b60841[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 01:44:36 2025 +0530
+
+    wha
+
+[33mcommit d8a0c5d044f8a7f9c53846947176388c37d1cdad[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sun Dec 7 00:44:47 2025 +0530
+
+    huh
+
+[33mcommit 760082f14cc429b3bc1745facc5ba2ff353bff85[m
+Merge: 3d06bee ff9d299
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 22:37:29 2025 +0530
+
+    Merge branch 'main' of https://github.com/Abhishek-Jose7/legal-assistant
+
+[33mcommit 3d06beefad04f95eaa12d6fd5a2696e7ed9bdcc4[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 22:34:38 2025 +0530
+
+    johann
+
+[33mcommit ff9d299dcd6547b7802a017ccd8f1d5a6c2ad751[m
+Merge: d413a73 f9d8bb1
+Author: AaronDeniz17 <aarondeniz17@gmail.com>
+Date:   Sat Dec 6 22:15:36 2025 +0530
+
+    Merge branch 'main' of https://github.com/Abhishek-Jose7/legal-assistant
+
+[33mcommit d413a7310adb23be153a6605525184b819892fde[m
+Author: AaronDeniz17 <aarondeniz17@gmail.com>
+Date:   Sat Dec 6 22:15:05 2025 +0530
+
+    we love anaay
+    
+    more lawyers
+
+[33mcommit f9d8bb161c1b5bfd437b5e3c4dc506744161ab19[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 22:00:38 2025 +0530
+
+    u
+
+[33mcommit 0476dccce0282183912ce8f6f36c5ec9b3ebd922[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 21:42:55 2025 +0530
+
+    mmkayy
+
+[33mcommit 86acddbea15c57ad2e5529f0d88c0e27eb9276d0[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 20:52:40 2025 +0530
+
+    change
+
+[33mcommit 8acb1431e4e234fcb5e4399330b753919703b06c[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 19:06:21 2025 +0530
+
+    h
+
+[33mcommit 4d1e88741360094b05630dfe2b28cd7dad212d31[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 18:34:00 2025 +0530
+
+    lol
+
+[33mcommit 5e985fae390259d994333ef5e093ac665ff98449[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 18:10:04 2025 +0530
+
+    huhuh
+
+[33mcommit 93dd2c8bb7525ce8da64c63dabbe0a9b209415d1[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 17:46:10 2025 +0530
+
+    huh
+
+[33mcommit 8b6426e34f230362b4cbb1e22589d36e7d187320[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 17:17:11 2025 +0530
+
+    h
+
+[33mcommit 10c2a1d24d900469a5b508b7bc094360033721a1[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 17:08:46 2025 +0530
+
+    h
+
+[33mcommit b92dd054ece1627ba6c47a7f735162e8d59faf85[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 17:00:29 2025 +0530
+
+    Updates with env excluded
+
+[33mcommit 675fb74d4ca888ebb508d5350006e22edd74e6b1[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 16:31:30 2025 +0530
+
+    know
+
+[33mcommit 131b6b7c9cfe4e1fc4a4281e4fc96f0ef2d50e8d[m
+Author: AaronDeniz17 <aarondeniz17@gmail.com>
+Date:   Sat Dec 6 16:20:46 2025 +0530
+
+    qf
+
+[33mcommit df2aab6b1bbd111c9c8d3fb4c1a1efa66324bc32[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 15:57:43 2025 +0530
+
+    huh
+
+[33mcommit 68a6073b6493dc0af8542161530556129041422c[m
+Author: Anaay2306 <anaayvakharkar3@gmail.com>
+Date:   Sat Dec 6 15:18:25 2025 +0530
+
+    haha
+
+[33mcommit 9c21e43f59ffd179437c030c15668a7448cf83e3[m
+Merge: 3ee770f 51f69a8
+Author: johann-jos <johannjoseph232006@gmail.com>
+Date:   Sat Dec 6 14:05:51 2025 +0530
+
+    jj1
+
+[33mcommit 3ee770fc8968339e6df6757f996c6ab4760fa398[m
+Author: johann-jos <johannjoseph232006@gmail.com>
+Date:   Sat Dec 6 13:54:53 2025 +0530
+
+    jj
+
+[33mcommit 51f69a89f267eaa36dc880e65ea47ee8150fdefc[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 13:33:06 2025 +0530
+
+    5
+
+[33mcommit b85223700bb16df12f0881ec3cb8956f1b10b3f4[m
+Author: AaronDeniz17 <aarondeniz17@gmail.com>
+Date:   Sat Dec 6 12:23:55 2025 +0530
+
+    lawyer
+    
+    lawer part
+
+[33mcommit 7116ffd3d191174863971b721f45125da3879990[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 12:22:25 2025 +0530
+
+    4
+
+[33mcommit eafbe2737008953cd7627985bfa74c5c7b39db31[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 11:17:49 2025 +0530
+
+    3
+
+[33mcommit 8ccaad3517b18c175c8e0a8777f7d1424fc352ac[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 11:02:54 2025 +0530
+
+    2
+
+[33mcommit 51d2007c4c4e0be10b668a042d585fd0fe181f6d[m
+Author: Abhishek-Jose7 <abhishekjose780@gmail.com>
+Date:   Sat Dec 6 10:46:50 2025 +0530
+
+    first commit
