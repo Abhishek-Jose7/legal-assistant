@@ -589,6 +589,92 @@ export default function AIChatSection() {
                       </div>
                     )}
 
+                    {/* Document Analysis */}
+                    {message.analysis && (
+                      <div className="space-y-4">
+                        {message.analysis.summary && (
+                          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 className="font-bold text-[#0F3D3E] text-sm mb-1 flex items-center gap-2">
+                              <FileText className="h-4 w-4" /> Summary
+                            </h4>
+                            <p className="text-sm text-slate-700">{message.analysis.summary}</p>
+                          </div>
+                        )}
+                        
+                        {message.analysis.risks && message.analysis.risks.length > 0 && (
+                          <div className="bg-red-50 p-4 rounded-xl border border-red-200">
+                            <h4 className="font-bold text-red-800 text-sm mb-2 flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4" /> Potential Risks
+                            </h4>
+                            <ul className="space-y-2">
+                              {message.analysis.risks.map((r: any, idx: number) => {
+                                const isObj = typeof r === 'object';
+                                const riskText = isObj ? r.risk : r;
+                                const riskSeverity = isObj ? r.severity : "Medium";
+                                const riskExpl = isObj ? r.explanation : "";
+                                return (
+                                  <li key={idx} className="text-sm text-red-700 bg-white/60 p-2 rounded-lg border border-red-100 flex flex-col gap-1">
+                                    <div className="flex items-start justify-between">
+                                      <span className="font-medium">• {riskText}</span>
+                                      <Badge variant="outline" className={`text-[10px] ml-2 shrink-0 border-current`}>
+                                        {riskSeverity}
+                                      </Badge>
+                                    </div>
+                                    {riskExpl && <span className="text-xs ml-3 text-red-600/80">{riskExpl}</span>}
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                            {message.analysis.worst_case_scenario && (
+                              <div className="mt-3 text-xs bg-red-100 p-2 rounded border border-red-200 text-red-800 font-medium">
+                                <strong>Worst Case:</strong> {message.analysis.worst_case_scenario}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {(message.analysis.clauses && message.analysis.clauses.length > 0) || (message.analysis.missing_clauses && message.analysis.missing_clauses.length > 0) ? (
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                                <h4 className="font-bold text-[#0F3D3E] text-sm mb-2 flex items-center gap-2">
+                                  <FileText className="h-4 w-4" /> Important Clauses
+                                </h4>
+                                {message.analysis.clauses && message.analysis.clauses.length > 0 && (
+                                   <div className="mb-2">
+                                      <span className="text-xs font-semibold text-slate-500 uppercase">Present</span>
+                                      <ul className="text-sm text-slate-700 list-disc pl-4 mt-1 space-y-1">
+                                        {message.analysis.clauses.map((c, i) => <li key={i}>{c}</li>)}
+                                      </ul>
+                                   </div>
+                                )}
+                                {message.analysis.missing_clauses && message.analysis.missing_clauses.length > 0 && (
+                                   <div className="mt-3">
+                                      <span className="text-xs font-semibold text-slate-500 uppercase">Missing / Recommended</span>
+                                      <ul className="text-sm text-orange-700 list-disc pl-4 mt-1 space-y-1">
+                                        {message.analysis.missing_clauses.map((c, i) => <li key={i}>{c}</li>)}
+                                      </ul>
+                                   </div>
+                                )}
+                            </div>
+                        ) : null}
+
+                        {message.analysis.actions && message.analysis.actions.length > 0 && (
+                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <h4 className="font-bold text-[#0F3D3E] text-sm mb-2 flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4" /> Recommended Actions
+                            </h4>
+                            <ul className="text-sm text-slate-700 space-y-1">
+                              {message.analysis.actions.map((act, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                   <div className="mt-0.5 text-[#0F3D3E]">•</div>
+                                   <div>{act}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Sub Topics Expandable */}
                     {message.sub_topics && message.sub_topics.length > 0 && (
                       <div className="flex flex-wrap gap-2">
