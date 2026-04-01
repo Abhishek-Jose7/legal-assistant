@@ -39,8 +39,9 @@ export default function Header() {
     { label: "Ask AI Assistant", href: "/chat", protected: false },
     { label: "Know Your Rights", href: "/rights", protected: true },
     { label: "Templates", href: "/templates", protected: false },
-    { label: "Find Lawyer", href: "/lawyers", protected: false }, // Always visible
+    { label: "Find Lawyer", href: "/lawyers", protected: false },
     { label: "Pricing", href: "/pricing", protected: false, publicOnly: true },
+    { label: "About Us", href: "/about", protected: false },
     { label: "Rights by Category", href: "/personas", protected: false, publicOnly: true },
     { label: "Legal Quiz", href: "/health-score", protected: true },
     { label: "My Profile", href: "/profile", protected: true },
