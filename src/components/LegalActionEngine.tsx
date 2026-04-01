@@ -354,8 +354,14 @@ function DecisionEngine({ decision, selectedOption, onSelect }: {
       </div>
       <div className="bg-[#F5EEDC] border border-[#C8AD7F]/20 rounded-xl p-3 flex items-start gap-2.5">
         <Sparkles className="h-4 w-4 text-[#C8AD7F] shrink-0 mt-0.5" />
-        <div><p className="text-[10px] font-semibold text-[#0F3D3E] uppercase mb-0.5">AI Recommendation</p>
-          <p className="text-xs text-[#2E2E2E] leading-relaxed">{decision.reason}</p></div>
+        <div className="flex-1"><p className="text-[10px] font-semibold text-[#0F3D3E] uppercase mb-0.5">AI Recommendation</p>
+          <p className="text-xs text-[#2E2E2E] leading-relaxed mb-3">{decision.reason}</p>
+          <Button asChild size="sm" className="bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] text-xs h-8 rounded-lg outline-none gap-2">
+            <a href="/lawyers">
+               <Briefcase className="h-3 w-3" /> Compare and Connect with Lawyers
+            </a>
+          </Button>
+        </div>
       </div>
     </motion.div>
   )
@@ -422,32 +428,37 @@ function WorkflowCards({ workflow, onGenerateDocument, isGenerating }: {
                       </div>
                     )}
 
-                    {/* CTA */}
-                    {step.action_type === "document" && (
-                      <Button size="sm" onClick={() => onGenerateDocument(step.cta, step.description)} disabled={isGenerating}
-                        className="w-full bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] text-xs h-8 rounded-lg gap-1.5">
-                        {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />} {step.cta}
-                      </Button>
-                    )}
-                    {step.action_type === "visit" && (
-                      <a href={`https://www.google.com/maps/search/${encodeURIComponent(step.cta)}`} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="outline" className={`w-full ${colors.border} ${colors.text} text-xs h-8 rounded-lg gap-1.5`}>
-                          <MapPin className="h-3 w-3" /> {step.cta} <ExternalLink className="h-2.5 w-2.5" />
+                    {/* Dynamic CTA Extractor */}
+                    <div className="flex flex-col gap-2 w-full mt-2">
+                      {(step.action_type === "document" || /draft|document|letter|notice|complaint|fir/i.test(step.cta + step.title)) && (
+                        <Button size="sm" onClick={() => onGenerateDocument(step.cta, step.description)} disabled={isGenerating}
+                          className="w-full bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] text-xs h-8 rounded-lg gap-1.5">
+                          {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />} Generate: {/draft|document|letter|form/i.test(step.cta) ? step.cta : "Required Document"}
                         </Button>
-                      </a>
-                    )}
-                    {step.action_type === "lawyer" && (
-                      <a href="/lawyers">
+                      )}
+                      
+                      {step.action_type === "visit" && (
+                        <a href={`https://www.google.com/maps/search/${encodeURIComponent(step.cta)}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                          <Button size="sm" variant="outline" className={`w-full ${colors.border} ${colors.text} text-xs h-8 rounded-lg gap-1.5`}>
+                            <MapPin className="h-3 w-3" /> {step.cta} <ExternalLink className="h-2.5 w-2.5" />
+                          </Button>
+                        </a>
+                      )}
+
+                      {(step.action_type === "lawyer" || /lawyer|advocate|court|legal counsel/i.test(step.cta + step.title)) && (
+                        <a href="/lawyers" className="w-full">
+                          <Button size="sm" variant="outline" className={`w-full border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 text-xs h-8 rounded-lg gap-1.5`}>
+                            <Briefcase className="h-3 w-3" /> Connect to Recommended Lawyer
+                          </Button>
+                        </a>
+                      )}
+
+                      {(step.action_type === "online" && !/lawyer|advocate|court/i.test(step.cta + step.title) && !/draft|document/i.test(step.cta + step.title)) && (
                         <Button size="sm" variant="outline" className={`w-full ${colors.border} ${colors.text} text-xs h-8 rounded-lg gap-1.5`}>
-                          <Briefcase className="h-3 w-3" /> {step.cta}
+                          <Globe className="h-3 w-3" /> {step.cta}
                         </Button>
-                      </a>
-                    )}
-                    {step.action_type === "online" && (
-                      <Button size="sm" variant="outline" className={`w-full ${colors.border} ${colors.text} text-xs h-8 rounded-lg gap-1.5`}>
-                        <Globe className="h-3 w-3" /> {step.cta}
-                      </Button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
