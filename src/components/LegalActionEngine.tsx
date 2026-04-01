@@ -72,7 +72,7 @@ const URGENCY_STYLES: Record<string, string> = {
   low: "bg-green-100 text-green-800 border-green-300",
 }
 
-const fadeUp = {
+const fadeUp: any = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
 }
@@ -732,7 +732,7 @@ export default function LegalActionEngine() {
 
   // ─── RENDER ──────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="h-full w-full bg-slate-50 flex overflow-hidden">
       {/* Session History Sidebar */}
       <SessionSidebar
         sessions={sessions} currentId={currentSessionId}
@@ -741,7 +741,7 @@ export default function LegalActionEngine() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto relative">
         {/* Problem Bar (shown after submission) */}
         {!showInputView && <ProblemBar problem={problem} onReset={handleReset} />}
 
@@ -805,7 +805,7 @@ export default function LegalActionEngine() {
             {classification && stage !== "classifying" && <ClassificationCard classification={classification} />}
 
             {/* Follow-up Questions */}
-            {(stage === "classified" || stage === "answering") && questions.length > 0 && (
+            {(stage === "classified" || stage === "answering" || stage === "analyzing") && questions.length > 0 && (
               <QuestionsForm questions={questions} answers={answers}
                 onAnswerChange={(id, val) => setAnswers((prev) => ({ ...prev, [id]: val }))}
                 onSubmit={handleAnalyze} isLoading={stage === "analyzing"} />

@@ -34,19 +34,50 @@ export async function POST(req: Request) {
         console.log(`Processing file type: ${file.type}, size: ${file.size}`);
 
         try {
-            if (file.type.startsWith("image/")) {
+            const ocrApiKey = process.env.OCR_API_KEY;
+
+            if (ocrApiKey && (file.type.startsWith("image/") || file.type === "application/pdf")) {
+                console.log("Using External OCR API...");
+                const ocrFormData = new FormData();
+                ocrFormData.append("apikey", ocrApiKey);
+                // The free OCR.space API parses the file payload natively
+                ocrFormData.append("file", file);
+                ocrFormData.append("isOverlayRequired", "false");
+                // if it's a multi-page PDF, ask OCR space to parse safely
+                if (file.type === "application/pdf") {
+                    ocrFormData.append("OCREngine", "2"); // Engine 2 is often better for PDFs
+                }
+
+                const ocrRes = await fetch("https://api.ocr.space/parse/image", {
+                    method: "POST",
+                    body: ocrFormData,
+                });
+                
+                const ocrJson = await ocrRes.json();
+                
+                if (ocrJson.IsErroredOnProcessing) {
+                    console.error("External OCR API Failed:", ocrJson.ErrorMessage);
+                    throw new Error(`OCR Processing Failed: ${ocrJson.ErrorMessage}`);
+                }
+                
+                if (ocrJson.ParsedResults && ocrJson.ParsedResults.length > 0) {
+                    extractedText = ocrJson.ParsedResults.map((pr: any) => pr.ParsedText).join("\\n");
+                    console.log(`External OCR Success! Extracted ${extractedText.length} characters.`);
+                } else {
+                    throw new Error("OCR API returned blank results.");
+                }
+            } 
+            // Fallback to local parsing logic if no external OCR key or if external fails?
+            // Actually, we'll use local parsing via else block if no key is present.
+            else if (file.type.startsWith("image/")) {
                 // Use Tesseract for OCR on Images
-                console.log("Starting OCR...");
-                const { data: { text } } = await Tesseract.recognize(
-                    buffer,
-                    'eng',
-                    // { logger: m => console.log(m) } // Reduce noise
-                );
+                console.log("Starting LOCAL OCR...");
+                const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
                 extractedText = text;
             }
             else if (file.type === "application/pdf") {
                 // Use PDF-Parse for Text-Based PDFs
-                console.log("Parsing PDF...");
+                console.log("Parsing LOCAL PDF...");
                 const pdf = require('pdf-parse');
                 const data = await pdf(buffer);
                 extractedText = data.text;

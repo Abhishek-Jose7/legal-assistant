@@ -905,9 +905,16 @@ export default function AIChatSection() {
           {/* Legal Action CTA */}
           {messages.length === 1 && (
             <div className="mb-4 mx-auto max-w-4xl w-full">
-              <a
-                href="/legal-action"
-                className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-[#C8AD7F]/50 bg-[#F5EEDC]/50 hover:bg-[#F5EEDC] hover:border-[#C8AD7F] transition-all group"
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!user) {
+                    openSignIn();
+                  } else {
+                    window.location.href = "/legal-action";
+                  }
+                }}
+                className="flex items-center w-full text-left gap-3 p-3 rounded-xl border-2 border-dashed border-[#C8AD7F]/50 bg-[#F5EEDC]/50 hover:bg-[#F5EEDC] hover:border-[#C8AD7F] transition-all group"
               >
                 <div className="w-10 h-10 rounded-lg bg-[#0F3D3E] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <Sparkles className="h-5 w-5 text-[#C8AD7F]" />
@@ -916,7 +923,7 @@ export default function AIChatSection() {
                   <p className="text-sm font-bold text-[#0F3D3E]">Need a full legal action plan?</p>
                   <p className="text-xs text-slate-500">Get step-by-step guidance, auto-generated documents, and progress tracking →</p>
                 </div>
-              </a>
+              </button>
             </div>
           )}
 
