@@ -235,11 +235,20 @@ export default function AIChatSection() {
     if (!user) return;
     const { data, error } = await supabase
       .from('chat_sessions')
-      .select('*')
+      .select('id, title, created_at, last_message_at, message_count, topics')
       .eq('user_id', user.id)
+      .order('last_message_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false });
 
-    if (data) setSessions(data);
+    if (data) {
+      const normalized = data.map((session) => ({
+        ...session,
+        last_message_at: session.last_message_at || session.created_at,
+        message_count: session.message_count ?? 0,
+        topics: session.topics || [],
+      })) as ChatSession[];
+      setSessions(normalized);
+    }
   };
 
   const loadSession = async (sessionId: string) => {
@@ -807,6 +816,24 @@ export default function AIChatSection() {
 
         {/* Input Area */}
         <div className="border-t p-4 bg-white z-10 shrink-0">
+          {/* Legal Action CTA */}
+          {messages.length === 1 && (
+            <div className="mb-4 mx-auto max-w-4xl w-full">
+              <a
+                href="/legal-action"
+                className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-[#C8AD7F]/50 bg-[#F5EEDC]/50 hover:bg-[#F5EEDC] hover:border-[#C8AD7F] transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[#0F3D3E] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Sparkles className="h-5 w-5 text-[#C8AD7F]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#0F3D3E]">Need a full legal action plan?</p>
+                  <p className="text-xs text-slate-500">Get step-by-step guidance, auto-generated documents, and progress tracking →</p>
+                </div>
+              </a>
+            </div>
+          )}
+
           {/* Quick Prompts */}
           {messages.length === 1 && (
             <div className="flex flex-wrap gap-2 mb-4 justify-center">

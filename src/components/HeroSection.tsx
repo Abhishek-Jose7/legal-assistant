@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MessageSquare, BookOpen, Scale, FileText, Gavel } from "lucide-react"
+import { Search, MessageSquare, BookOpen, Scale, FileText, Gavel, Zap } from "lucide-react"
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "framer-motion"
 import AnimatedButton from "@/components/animations/AnimatedButton"
@@ -105,7 +105,7 @@ export default function HeroSection() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="block"
             >
-              Understand Your Rights.
+              Your Legal Problems.
             </motion.span>
             <motion.span
               initial={{ opacity: 0, y: 20 }}
@@ -113,7 +113,7 @@ export default function HeroSection() {
               transition={{ delay: 0.4, duration: 0.8 }}
               className="block"
             >
-              <span className="text-[#C8AD7F]">Get Help When You Need It.</span>
+              <span className="text-[#C8AD7F]">Turned Into Action Plans.</span>
             </motion.span>
           </motion.h1>
 
@@ -124,7 +124,7 @@ export default function HeroSection() {
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
             className="text-lg md:text-xl text-[#F5EEDC]/90 mb-10 max-w-2xl drop-shadow-lg"
           >
-            A personal legal assistant that explains laws in simple language and connects you to affordable verified lawyers.
+            Describe your legal problem in plain language. Our AI classifies it, builds a step-by-step action plan, generates legal documents, and tracks your progress.
           </motion.p>
 
           {/* Search Box */}
@@ -167,15 +167,15 @@ export default function HeroSection() {
                 damping: 15,
               }}
             >
-              <Link href="/chat">
+              <Link href="/legal-action">
                 <AnimatedButton
                   size="lg"
                   showRipple={true}
                   rippleColor="rgba(245, 238, 220, 0.6)"
                   className="bg-[#0F3D3E] hover:bg-[#0F3D3E]/90 text-[#F5EEDC] h-12 px-8 text-base rounded-xl shadow-lg hover:shadow-xl relative border-2 border-[#C8AD7F]/30"
                 >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Start Legal Chat
+                  <Zap className="mr-2 h-5 w-5" />
+                  Take Legal Action
                 </AnimatedButton>
               </Link>
             </motion.div>
@@ -184,7 +184,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
-              <Link href="/personas">
+              <Link href="/chat">
                 <AnimatedButton
                   size="lg"
                   variant="outline"
@@ -192,8 +192,8 @@ export default function HeroSection() {
                   rippleColor="rgba(15, 61, 62, 0.2)"
                   className="h-12 px-8 text-base rounded-xl border-2 border-[#C8AD7F] bg-[#F5EEDC]/90 backdrop-blur-sm hover:bg-[#F5EEDC] hover:border-[#C8AD7F] text-[#2E2E2E] relative"
                 >
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  Browse Rights by Category
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Ask AI Assistant
                 </AnimatedButton>
               </Link>
             </motion.div>

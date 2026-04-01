@@ -35,10 +35,12 @@ export default function Header() {
 
   // Define navigation items
   const baseNavItems = [
+    { label: "Take Legal Action", href: "/legal-action", protected: false },
     { label: "Ask AI Assistant", href: "/chat", protected: false },
     { label: "Know Your Rights", href: "/rights", protected: true },
     { label: "Templates", href: "/templates", protected: false },
     { label: "Find Lawyer", href: "/lawyers", protected: false }, // Always visible
+    { label: "Pricing", href: "/pricing", protected: false, publicOnly: true },
     { label: "Rights by Category", href: "/personas", protected: false, publicOnly: true },
     { label: "Legal Quiz", href: "/health-score", protected: false },
     { label: "My Profile", href: "/profile", protected: true },

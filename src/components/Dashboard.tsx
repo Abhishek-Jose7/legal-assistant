@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { BookOpen, Scale, FileText, ArrowRight, Users, Shield, Smartphone, MessageSquare, Newspaper, Gavel, Star, Clock } from "lucide-react"
+import { BookOpen, Scale, FileText, ArrowRight, Users, Shield, Smartphone, MessageSquare, Newspaper, Gavel, Star, Clock, Zap } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useUser } from "@clerk/nextjs" // Assuming Clerk
@@ -79,6 +79,14 @@ export default function Dashboard() {
 
     // Main Features for Public/Guest View (from Features.tsx)
     const publicFeatures = [
+        {
+            icon: Zap,
+            title: "Take Legal Action",
+            description: "Describe your problem. Get a step-by-step legal action plan, auto-generated documents, and progress tracking.",
+            href: "/legal-action",
+            color: "bg-amber-100 text-amber-600",
+            buttonText: "Start Now",
+        },
         {
             icon: Users,
             title: "Rights by Category",
@@ -170,8 +178,52 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Column 2: News (Right Sidebar) */}
-                        <div className="lg:col-span-1">
+                        {/* Column 2: Sidebar */}
+                        <div className="lg:col-span-1 space-y-6">
+                            {/* Your Plan Card */}
+                            <div>
+                                <h3 className="flex items-center gap-2 text-xl font-semibold text-[#0F3D3E] mb-4">
+                                    <Zap className="h-5 w-5 text-amber-500" /> Your Plan
+                                </h3>
+                                <Card className="border-2 border-[#C8AD7F]/30 bg-gradient-to-br from-[#0F3D3E] to-[#0F3D3E]/90 overflow-hidden">
+                                    <CardContent className="p-5 text-[#F5EEDC]">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-9 h-9 rounded-lg bg-[#C8AD7F]/20 flex items-center justify-center">
+                                                    <Zap className="h-5 w-5 text-[#C8AD7F]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-base">Free Plan</h4>
+                                                    <p className="text-[10px] text-[#F5EEDC]/60">Active</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs bg-[#C8AD7F]/20 text-[#C8AD7F] px-2 py-1 rounded-full font-medium">₹0/mo</span>
+                                        </div>
+                                        <div className="space-y-2.5 mb-4">
+                                            <div className="flex justify-between text-xs">
+                                                <span className="text-[#F5EEDC]/70">Queries</span>
+                                                <span className="font-medium">100/mo • 10/day</span>
+                                            </div>
+                                            <div className="flex justify-between text-xs">
+                                                <span className="text-[#F5EEDC]/70">Storage</span>
+                                                <span className="font-medium">100 MB</span>
+                                            </div>
+                                            <div className="flex justify-between text-xs">
+                                                <span className="text-[#F5EEDC]/70">History</span>
+                                                <span className="font-medium">30 Days</span>
+                                            </div>
+                                        </div>
+                                        <Link href="/pricing">
+                                            <button className="w-full py-2.5 rounded-lg bg-[#C8AD7F] hover:bg-[#C8AD7F]/90 text-[#0F3D3E] text-sm font-bold transition-colors flex items-center justify-center gap-1.5">
+                                                <ArrowRight className="h-3.5 w-3.5" /> Upgrade Plan
+                                            </button>
+                                        </Link>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Legal News */}
+                            <div>
                             <h3 className="flex items-center gap-2 text-xl font-semibold text-[#0F3D3E] mb-4">
                                 <Newspaper className="h-5 w-5" /> Legal News & Updates
                             </h3>
@@ -202,6 +254,7 @@ export default function Dashboard() {
                                     )}
                                 </CardContent>
                             </Card>
+                            </div>
                         </div>
                     </div>
                 )}

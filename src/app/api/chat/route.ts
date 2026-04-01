@@ -5,10 +5,17 @@ import Groq from "groq-sdk";
 import fs from 'fs';
 import path from 'path';
 
-// Initialize Groq
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || "gsk_...", // Fallback or env
-});
+let groqClient: Groq | null = null;
+const getGroqClient = () => {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY is not configured.");
+    }
+    groqClient = new Groq({ apiKey });
+  }
+  return groqClient;
+};
 
 // Load data using shared lib
 const legalRightsDB = loadLegalData();
@@ -290,7 +297,7 @@ export async function POST(req: Request) {
             This builds trust.
     `;
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroqClient().chat.completions.create({
       messages: [
         { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
         { role: "user", content: systemPrompt }
