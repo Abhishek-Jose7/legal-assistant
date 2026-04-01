@@ -54,6 +54,46 @@ export interface TrackingItem {
   step_number: number;
 }
 
+// Strategy & Guidance Engine Types
+
+export interface Strategy {
+  user_goal: string;
+  recommended_action: string;
+  why_this: string;
+  alternative_options: Array<{
+    option: string;
+    when_to_use: string;
+  }>;
+}
+
+export interface OutcomePrediction {
+  estimated_outcome: "low" | "moderate" | "high";
+  time_estimate: string;
+  factors_affecting_outcome: string[];
+}
+
+export interface RiskWarning {
+  risk: string;
+  impact: string;
+  how_to_avoid: string;
+}
+
+export interface LocalHelp {
+  suggestions: Array<{
+    type: string;
+    action: string;
+    note: string;
+  }>;
+}
+
+export interface StrategyResult {
+  empathetic_message: string;
+  strategy: Strategy;
+  outcome_prediction: OutcomePrediction;
+  risks: RiskWarning[];
+  local_help: LocalHelp;
+}
+
 export type ActionStage =
   | "input"
   | "classifying"
