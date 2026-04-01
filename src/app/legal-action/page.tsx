@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function LegalActionPage() {
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-[#F5EEDC]">
       <Header />
       <main className="flex-1 overflow-hidden pt-20">
         <LegalActionEngine />

@@ -176,7 +176,7 @@ function ProblemBar({ problem, onReset }: { problem: string; onReset: () => void
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 sticky top-20 z-20 shadow-sm"
+      className="bg-white border-b border-[#C8AD7F]/20 px-6 py-3 flex items-center gap-4 sticky top-0 z-50 shadow-sm"
     >
       <div className="w-8 h-8 rounded-lg bg-[#0F3D3E] flex items-center justify-center shrink-0">
         <Scale className="h-4 w-4 text-[#C8AD7F]" />
@@ -408,10 +408,17 @@ function WorkflowCards({ workflow, onGenerateDocument, isGenerating }: {
                       </span>
                     )}
                     {step.required_documents?.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {step.required_documents.map((doc, i) => (
-                          <Badge key={i} variant="secondary" className="bg-slate-50 text-slate-500 text-[8px] border border-slate-100 px-1.5">📄 {doc}</Badge>
-                        ))}
+                      <div className="bg-amber-50 rounded-lg p-2.5 border border-amber-200 mt-2 flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-amber-800 uppercase flex items-center gap-1">
+                           <FileText className="h-3 w-3" /> Documents to Collect:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5 mt-0.5">
+                          {step.required_documents.map((doc, i) => (
+                            <Badge key={i} variant="secondary" className="bg-white text-slate-700 text-[10px] font-semibold border-amber-300 shadow-sm px-2 py-0.5">
+                              {doc}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
 
@@ -725,14 +732,14 @@ export default function LegalActionEngine() {
   }
 
   // Auth loading
-  if (!isLoaded) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#0F3D3E]" /></div>
+  if (!isLoaded) return <div className="h-full w-full bg-[#F5EEDC] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#0F3D3E]" /></div>
   if (!isSignedIn) return null
 
   const showInputView = stage === "input"
 
   // ─── RENDER ──────────────────────────────────
   return (
-    <div className="h-full w-full bg-slate-50 flex overflow-hidden">
+    <div className="h-full w-full bg-[#F5EEDC] flex overflow-hidden">
       {/* Session History Sidebar */}
       <SessionSidebar
         sessions={sessions} currentId={currentSessionId}

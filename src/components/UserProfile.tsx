@@ -121,6 +121,19 @@ export default function UserProfile() {
                                     {profile.user_type}
                                 </span>
                             </div>
+
+                            {/* Current Plan Section */}
+                            <div className="mt-8 w-full border-t border-[#C8AD7F]/20 pt-6">
+                                <div className="flex flex-col items-center">
+                                    <p className="text-xs uppercase font-bold text-[#2E2E2E]/50 mb-1">Current Plan</p>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="text-xl font-black text-[#0F3D3E]">Free Tier</span>
+                                    </div>
+                                    <Button asChild className="w-full bg-gradient-to-r from-[#C8AD7F] to-[#b09668] hover:from-[#b09668] hover:to-[#9a8055] text-white shadow-md rounded-xl font-bold border-0">
+                                        <a href="/pricing">Upgrade Plan ⚡</a>
+                                    </Button>
+                                </div>
+                            </div>
                         </CardHeader>
                     </Card>
 

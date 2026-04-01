@@ -329,39 +329,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Chat API Error:", error);
 
-    // 1. ATTEMPT OPENROUTER BACKUP
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (openRouterKey) {
-      try {
-        console.log("Attempting OpenRouter Fallback...");
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${openRouterKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:3000",
-          },
-          body: JSON.stringify({
-            model: "meta-llama/llama-3-8b-instruct:free",
-            messages: [
-              { role: "system", content: "You are a helpful legal AI. Output valid JSON only." },
-              { role: "user", content: "Analyze user query and return JSON with confidence_level, rights_cards, lawyer_recommended." }
-            ],
-            response_format: { type: "json_object" }
-          })
-        });
-
-        if (response.ok) {
-          // Basic fallback handling (simplified for brevity)
-          const data = await response.json();
-          return NextResponse.json(parsedResponseWrapper(JSON.parse(data.choices[0]?.message?.content || "{}")));
-        }
-      } catch (orError) {
-        console.error("OpenRouter Failed:", orError);
-      }
-    }
-
-    // 2. FALLBACK: Use RAG data if AI fails
+    // 1. FALLBACK: Use RAG data if AI fails
     try {
       const fallbackRights = searchLegalRights(message);
       if (fallbackRights.length > 0) {

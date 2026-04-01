@@ -34,12 +34,14 @@ export async function POST(req: Request) {
         console.log(`Processing file type: ${file.type}, size: ${file.size}`);
 
         try {
-            const ocrApiKey = process.env.OCR_API_KEY;
-
-            if (ocrApiKey && (file.type.startsWith("image/") || file.type === "application/pdf")) {
-                console.log("Using External OCR API...");
-                const ocrFormData = new FormData();
-                ocrFormData.append("apikey", ocrApiKey);
+            let ocrSuccess = false;
+            // Always try External OCR API First
+            if (file.type.startsWith("image/") || file.type === "application/pdf") {
+                const ocrApiKey = process.env.OCR_API_KEY || "helloworld";
+                try {
+                    console.log("Using External OCR API (ocr.space)...");
+                    const ocrFormData = new FormData();
+                    ocrFormData.append("apikey", ocrApiKey);
                 // The free OCR.space API parses the file payload natively
                 ocrFormData.append("file", file);
                 ocrFormData.append("isOverlayRequired", "false");
@@ -63,31 +65,39 @@ export async function POST(req: Request) {
                 if (ocrJson.ParsedResults && ocrJson.ParsedResults.length > 0) {
                     extractedText = ocrJson.ParsedResults.map((pr: any) => pr.ParsedText).join("\\n");
                     console.log(`External OCR Success! Extracted ${extractedText.length} characters.`);
+                    // If OCR space gives a hard blank but not an error flag, we shouldn't consider it success if length is zero.
+                    if (extractedText.trim().length > 0) {
+                        ocrSuccess = true;
+                    }
                 } else {
-                    throw new Error("OCR API returned blank results.");
+                    console.warn("OCR API returned blank results.");
+                }
+                } catch (ocrErr) {
+                    console.error("External OCR API Exception:", ocrErr);
                 }
             } 
-            // Fallback to local parsing logic if no external OCR key or if external fails?
-            // Actually, we'll use local parsing via else block if no key is present.
-            else if (file.type.startsWith("image/")) {
-                // Use Tesseract for OCR on Images
-                console.log("Starting LOCAL OCR...");
-                const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
-                extractedText = text;
-            }
-            else if (file.type === "application/pdf") {
-                // Use PDF-Parse for Text-Based PDFs
-                console.log("Parsing LOCAL PDF...");
-                const pdf = require('pdf-parse');
-                const data = await pdf(buffer);
-                extractedText = data.text;
-                console.log(`PDF Parsed. Length: ${extractedText.length}`);
-            }
-            else if (file.type === "text/plain") {
-                extractedText = buffer.toString('utf-8');
-            }
-            else {
-                return NextResponse.json({ error: "Unsupported file type. Use .pdf, .jpg, .png, or .txt" }, { status: 400 });
+            // Fallback to local parsing logic if external OCR failed or not attempted
+            if (!ocrSuccess) {
+                if (file.type.startsWith("image/")) {
+                    // Use Tesseract for OCR on Images
+                    console.log("Starting LOCAL OCR...");
+                    const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
+                    extractedText = text;
+                }
+                else if (file.type === "application/pdf") {
+                    // Use PDF-Parse for Text-Based PDFs
+                    console.log("Parsing LOCAL PDF...");
+                    const pdf = require('pdf-parse');
+                    const data = await pdf(buffer);
+                    extractedText = data.text;
+                    console.log(`PDF Parsed. Length: ${extractedText.length}`);
+                }
+                else if (file.type === "text/plain") {
+                    extractedText = buffer.toString('utf-8');
+                }
+                else {
+                    return NextResponse.json({ error: "Unsupported file type. Use .pdf, .jpg, .png, or .txt" }, { status: 400 });
+                }
             }
         } catch (parseError: any) {
             console.error("Text Extraction Error:", parseError);
