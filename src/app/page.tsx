@@ -4,6 +4,7 @@ import Header from "@/components/Header"
 import HeroSection from "@/components/HeroSection"
 import Dashboard from "@/components/Dashboard"
 import Footer from "@/components/Footer"
+import ReviewSection from "@/components/ReviewSection"
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <Dashboard />
+        <ReviewSection />
       </main>
       <Footer />
     </div>
